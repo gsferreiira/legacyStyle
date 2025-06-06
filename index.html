@@ -16,13 +16,14 @@
         body {
             background-color: #f5f5f5;
             color: #333;
+            overflow-x: hidden;
         }
         
         /* Cabeçalho */
         header {
             background-color: #1a1a1a;
             color: #fff;
-            padding: 20px 0;
+            padding: 15px 0;
             position: fixed;
             width: 100%;
             z-index: 1000;
@@ -33,6 +34,7 @@
             width: 90%;
             max-width: 1200px;
             margin: 0 auto;
+            padding: 0 15px;
         }
         
         .header-content {
@@ -42,7 +44,7 @@
         }
         
         .logo {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             color: #d4af37;
         }
@@ -51,13 +53,20 @@
             color: #fff;
         }
         
+        /* Menu Mobile */
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            font-size: 24px;
+        }
+        
         nav ul {
             display: flex;
             list-style: none;
         }
         
         nav ul li {
-            margin-left: 30px;
+            margin-left: 20px;
         }
         
         nav ul li a {
@@ -65,6 +74,7 @@
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
+            font-size: 16px;
         }
         
         nav ul li a:hover {
@@ -74,6 +84,7 @@
         /* Hero Section */
         .hero {
             height: 100vh;
+            min-height: 600px;
             background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1599351431202-1e0f0137899a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
             background-size: cover;
             background-position: center;
@@ -81,30 +92,32 @@
             align-items: center;
             text-align: center;
             color: #fff;
+            padding-top: 70px;
         }
         
         .hero-content h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
+            font-size: 32px;
+            margin-bottom: 15px;
+            line-height: 1.3;
         }
         
         .hero-content p {
-            font-size: 20px;
-            margin-bottom: 30px;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
+            font-size: 18px;
+            margin-bottom: 25px;
+            max-width: 100%;
+            padding: 0 15px;
         }
         
         .btn {
             display: inline-block;
             background-color: #d4af37;
             color: #1a1a1a;
-            padding: 12px 30px;
+            padding: 12px 25px;
             border-radius: 30px;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s;
+            font-size: 16px;
         }
         
         .btn:hover {
@@ -114,21 +127,21 @@
         
         /* Sobre Nós */
         .about {
-            padding: 100px 0;
+            padding: 60px 0;
             background-color: #fff;
         }
         
         .section-title {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 30px;
         }
         
         .section-title h2 {
-            font-size: 36px;
+            font-size: 28px;
             color: #1a1a1a;
             position: relative;
             display: inline-block;
-            padding-bottom: 15px;
+            padding-bottom: 10px;
         }
         
         .section-title h2::after {
@@ -137,19 +150,20 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 80px;
+            width: 60px;
             height: 3px;
             background-color: #d4af37;
         }
         
         .about-content {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 50px;
+            gap: 30px;
         }
         
         .about-img {
-            flex: 1;
+            width: 100%;
             border-radius: 10px;
             overflow: hidden;
         }
@@ -161,31 +175,32 @@
         }
         
         .about-text {
-            flex: 1;
+            width: 100%;
         }
         
         .about-text h3 {
-            font-size: 28px;
-            margin-bottom: 20px;
+            font-size: 24px;
+            margin-bottom: 15px;
             color: #1a1a1a;
         }
         
         .about-text p {
             margin-bottom: 15px;
             line-height: 1.6;
+            font-size: 16px;
         }
         
         /* Barbeiros */
         .barbers {
-            padding: 100px 0;
+            padding: 60px 0;
             background-color: #f5f5f5;
         }
         
         .barbers-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 50px;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            margin-top: 30px;
         }
         
         .barber-card {
@@ -197,11 +212,11 @@
         }
         
         .barber-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-5px);
         }
         
         .barber-img {
-            height: 350px;
+            height: 300px;
             overflow: hidden;
         }
         
@@ -213,7 +228,7 @@
         }
         
         .barber-card:hover .barber-img img {
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
         
         .barber-info {
@@ -222,7 +237,7 @@
         }
         
         .barber-info h3 {
-            font-size: 22px;
+            font-size: 20px;
             margin-bottom: 5px;
             color: #1a1a1a;
         }
@@ -230,7 +245,14 @@
         .barber-info p {
             color: #d4af37;
             font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .barber-info p:last-child {
+            color: #333;
             margin-bottom: 15px;
+            font-size: 15px;
         }
         
         .social-links {
@@ -251,21 +273,21 @@
         
         /* Serviços */
         .services {
-            padding: 100px 0;
+            padding: 60px 0;
             background-color: #fff;
         }
         
         .services-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 50px;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 30px;
         }
         
         .service-card {
             background-color: #f5f5f5;
             border-radius: 10px;
-            padding: 30px;
+            padding: 25px;
             text-align: center;
             transition: all 0.3s;
         }
@@ -276,8 +298,8 @@
         }
         
         .service-icon {
-            font-size: 50px;
-            margin-bottom: 20px;
+            font-size: 40px;
+            margin-bottom: 15px;
             color: #d4af37;
         }
         
@@ -286,73 +308,81 @@
         }
         
         .service-card h3 {
-            font-size: 22px;
-            margin-bottom: 15px;
+            font-size: 20px;
+            margin-bottom: 10px;
         }
         
         .service-card p {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             line-height: 1.6;
+            font-size: 15px;
         }
         
         .price {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
         }
         
         /* Contato */
         .contact {
-            padding: 100px 0;
+            padding: 60px 0;
             background-color: #f5f5f5;
         }
         
         .contact-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 50px;
+            grid-template-columns: 1fr;
+            gap: 30px;
         }
         
         .contact-info h3 {
-            font-size: 24px;
-            margin-bottom: 20px;
+            font-size: 22px;
+            margin-bottom: 15px;
             color: #1a1a1a;
         }
         
         .contact-info p {
             margin-bottom: 15px;
             line-height: 1.6;
+            font-size: 16px;
         }
         
         .info-item {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .info-icon {
-            font-size: 20px;
+            font-size: 18px;
             color: #d4af37;
-            margin-right: 15px;
+            margin-right: 12px;
+            margin-top: 3px;
         }
         
         .info-text h4 {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 5px;
             color: #1a1a1a;
+        }
+        
+        .info-text p {
+            font-size: 15px;
+            line-height: 1.5;
         }
         
         .contact-form input,
         .contact-form textarea {
             width: 100%;
             padding: 12px 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 16px;
         }
         
         .contact-form textarea {
-            height: 150px;
+            height: 120px;
             resize: none;
         }
         
@@ -366,12 +396,14 @@
         
         .footer-content p {
             margin-bottom: 15px;
+            font-size: 16px;
         }
         
         .footer-links {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
             margin-bottom: 20px;
         }
         
@@ -379,9 +411,27 @@
             color: #fff;
             text-decoration: none;
             transition: color 0.3s;
+            font-size: 15px;
         }
         
         .footer-links a:hover {
+            color: #d4af37;
+        }
+        
+        .social-links-footer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .social-links-footer a {
+            color: #fff;
+            font-size: 20px;
+            transition: color 0.3s;
+        }
+        
+        .social-links-footer a:hover {
             color: #d4af37;
         }
         
@@ -405,8 +455,8 @@
 
         .booking-content {
             background-color: #fff;
-            margin: 50px auto;
-            padding: 30px;
+            margin: 30px auto;
+            padding: 20px;
             border-radius: 10px;
             width: 90%;
             max-width: 500px;
@@ -415,8 +465,8 @@
 
         .close-booking {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 10px;
+            right: 10px;
             font-size: 24px;
             cursor: pointer;
             color: #1a1a1a;
@@ -424,14 +474,24 @@
 
         .booking-title {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+        }
+
+        .booking-title h3 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .booking-title p {
+            font-size: 15px;
+            color: #555;
         }
 
         .barber-selection {
             display: grid;
             grid-template-columns: 1fr;
             gap: 15px;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         .barber-option {
@@ -461,14 +521,102 @@
             object-fit: cover;
         }
 
-        .barber-info h4 {
+        .barber-option .barber-info h4 {
             margin-bottom: 5px;
             color: #1a1a1a;
+            font-size: 18px;
         }
 
-        .barber-info p {
+        .barber-option .barber-info p {
             color: #777;
             font-size: 14px;
+        }
+
+        /* Media Queries para responsividade */
+        @media (min-width: 768px) {
+            .logo {
+                font-size: 28px;
+            }
+            
+            .hero-content h1 {
+                font-size: 42px;
+            }
+            
+            .hero-content p {
+                font-size: 20px;
+                max-width: 700px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .section-title h2 {
+                font-size: 32px;
+            }
+            
+            .about-content {
+                flex-direction: row;
+                gap: 40px;
+            }
+            
+            .barbers-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 30px;
+            }
+            
+            .services-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 25px;
+            }
+            
+            .contact-container {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 40px;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .hero-content h1 {
+                font-size: 48px;
+            }
+            
+            .section-title h2 {
+                font-size: 36px;
+            }
+        }
+
+        /* Menu Mobile */
+        @media (max-width: 767px) {
+            .menu-toggle {
+                display: block;
+            }
+            
+            nav {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 80%;
+                height: calc(100vh - 70px);
+                background-color: #1a1a1a;
+                transition: all 0.3s;
+                z-index: 999;
+            }
+            
+            nav.active {
+                left: 0;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                padding: 20px;
+            }
+            
+            nav ul li {
+                margin: 15px 0;
+            }
+            
+            .hero {
+                padding-top: 70px;
+            }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -480,6 +628,9 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo">LEGACY <span>STYLE</span></div>
+                <div class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </div>
                 <nav>
                     <ul>
                         <li><a href="#home">Início</a></li>
@@ -706,10 +857,10 @@
                     <a href="#contact">Contato</a>
                 </div>
                 
-                <div class="social-links">
+                <div class="social-links-footer">
                     <a href="#"><i class="fab fa-instagram"></i></a>
                     <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="554199888727"><i class="fab fa-whatsapp"></i></a>
+                    <a href="https://wa.me/554199888727"><i class="fab fa-whatsapp"></i></a>
                 </div>
                 
                 <p class="copyright">&copy; 2024 Legacy Style Barbearia. Todos os direitos reservados.</p>
@@ -719,110 +870,125 @@
 
     <!-- Modal de Agendamento Simplificado -->
     <div class="booking-modal" id="bookingModal">
-    <div class="booking-content">
-        <span class="close-booking" id="closeBooking">&times;</span>
-        
-        <div class="booking-title">
-            <h3>Agende com seu Barbeiro Preferido</h3>
-            <p>Escolha o profissional para seu atendimento</p>
-        </div>
-        
-        <div class="barber-selection">
-            <div class="barber-option" data-barber="caua">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80" alt="Cauã">
-                <div class="barber-info">
-                    <h4>Cauã</h4>
-                    <p>Especialista em cortes clássicos</p>
-                </div>
+        <div class="booking-content">
+            <span class="close-booking" id="closeBooking">&times;</span>
+            
+            <div class="booking-title">
+                <h3>Agende com seu Barbeiro Preferido</h3>
+                <p>Escolha o profissional para seu atendimento</p>
             </div>
-            <div class="barber-option" data-barber="vitinho">
-                <img src="https://images.unsplash.com/photo-1530268729831-4b0b9e170218?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80" alt="Vitinho">
-                <div class="barber-info">
-                    <h4>Vitinho</h4>
-                    <p>Mestre em design de barba</p>
+            
+            <div class="barber-selection">
+                <div class="barber-option" data-barber="caua">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80" alt="Cauã">
+                    <div class="barber-info">
+                        <h4>Cauã</h4>
+                        <p>Especialista em cortes clássicos</p>
+                    </div>
+                </div>
+                <div class="barber-option" data-barber="vitinho">
+                    <img src="https://images.unsplash.com/photo-1530268729831-4b0b9e170218?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80" alt="Vitinho">
+                    <div class="barber-info">
+                        <h4>Vitinho</h4>
+                        <p>Mestre em design de barba</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
     <script>
-    // Sistema de Agendamento Simplificado
-    document.addEventListener('DOMContentLoaded', function() {
-        // Elementos do modal
-        const bookingModal = document.getElementById('bookingModal');
-        const closeBooking = document.getElementById('closeBooking');
-        const bookNowButtons = document.querySelectorAll('.btn[href="#contact"], .btn[href="#home"], #bookNowHero');
-        
-        // Links de agendamento para cada barbeiro
-        const barberLinks = {
-            'caua': 'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0sbSQK6MpzVDWeMYRkEoeXGn6oOLipEdfWPotfIXY7GXlWUSPnD4CKpxy9AUF-Nbllg3MLvcWn',
-            'vitinho': 'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0jo7nuOHQktEtWNjoK7ciPVCyCIfYdCvm1Kixgeh-LSyVZXWXDbfKpEfT6SvJm-7-ruZEcFQJS'
-        };
-        
-        // Números de WhatsApp e mensagens para cada barbeiro
-        const whatsappContacts = {
-            'caua': {
-                number: '554199888727', // Substitua pelo número real do Cauã com DDI e DDD
-                message: 'Olá Cauã, vim pelo site. Pode me ajudar?'
-            },
-            'vitinho': {
-                number: '554188383629', // Substitua pelo número real do Vitinho com DDI e DDD
-                message: 'Olá Vitinho, vim pelo site. Pode me ajudar?'
-            }
-        };
-        
-        // Abrir modal quando clicar em agendar
-        bookNowButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                bookingModal.style.display = 'block';
-                document.body.style.overflow = 'hidden';
+        // Sistema de Agendamento Simplificado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos do modal
+            const bookingModal = document.getElementById('bookingModal');
+            const closeBooking = document.getElementById('closeBooking');
+            const bookNowButtons = document.querySelectorAll('.btn[href="#contact"], .btn[href="#home"], #bookNowHero');
+            
+            // Links de agendamento para cada barbeiro
+            const barberLinks = {
+                'caua': 'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0sbSQK6MpzVDWeMYRkEoeXGn6oOLipEdfWPotfIXY7GXlWUSPnD4CKpxy9AUF-Nbllg3MLvcWn',
+                'vitinho': 'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0jo7nuOHQktEtWNjoK7ciPVCyCIfYdCvm1Kixgeh-LSyVZXWXDbfKpEfT6SvJm-7-ruZEcFQJS'
+            };
+            
+            // Números de WhatsApp e mensagens para cada barbeiro
+            const whatsappContacts = {
+                'caua': {
+                    number: '554199888727',
+                    message: 'Olá Cauã, vim pelo site. Pode me ajudar?'
+                },
+                'vitinho': {
+                    number: '554188383629',
+                    message: 'Olá Vitinho, vim pelo site. Pode me ajudar?'
+                }
+            };
+            
+            // Menu Mobile
+            const menuToggle = document.querySelector('.menu-toggle');
+            const nav = document.querySelector('nav');
+            
+            menuToggle.addEventListener('click', function() {
+                nav.classList.toggle('active');
             });
-        });
-        
-        // Fechar modal
-        closeBooking.addEventListener('click', function() {
-            bookingModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        });
-        
-        // Fechar ao clicar fora do modal
-        window.addEventListener('click', function(e) {
-            if (e.target === bookingModal) {
+            
+            // Fechar menu ao clicar em um link
+            document.querySelectorAll('nav a').forEach(link => {
+                link.addEventListener('click', function() {
+                    nav.classList.remove('active');
+                });
+            });
+            
+            // Abrir modal quando clicar em agendar
+            bookNowButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    bookingModal.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+            
+            // Fechar modal
+            closeBooking.addEventListener('click', function() {
                 bookingModal.style.display = 'none';
                 document.body.style.overflow = 'auto';
-            }
-        });
-        
-        // Seleção de barbeiro
-        const barberOptions = document.querySelectorAll('.barber-option');
-        
-        barberOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                const barberId = this.getAttribute('data-barber');
-                
-                // Redirecionar para o link do barbeiro correspondente
-                if (barberLinks[barberId]) {
-                    window.location.href = barberLinks[barberId];
+            });
+            
+            // Fechar ao clicar fora do modal
+            window.addEventListener('click', function(e) {
+                if (e.target === bookingModal) {
+                    bookingModal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
                 }
             });
-        });
-        
-        // Configurar links do WhatsApp
-        document.querySelectorAll('.whatsapp-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const barberId = this.getAttribute('data-barber');
-                const contact = whatsappContacts[barberId];
-                
-                if (contact) {
-                    const whatsappUrl = `https://wa.me/${contact.number}?text=${encodeURIComponent(contact.message)}`;
-                    window.open(whatsappUrl, '_blank');
-                }
+            
+            // Seleção de barbeiro
+            const barberOptions = document.querySelectorAll('.barber-option');
+            
+            barberOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const barberId = this.getAttribute('data-barber');
+                    
+                    // Redirecionar para o link do barbeiro correspondente
+                    if (barberLinks[barberId]) {
+                        window.location.href = barberLinks[barberId];
+                    }
+                });
+            });
+            
+            // Configurar links do WhatsApp
+            document.querySelectorAll('.whatsapp-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const barberId = this.getAttribute('data-barber');
+                    const contact = whatsappContacts[barberId];
+                    
+                    if (contact) {
+                        const whatsappUrl = `https://wa.me/${contact.number}?text=${encodeURIComponent(contact.message)}`;
+                        window.open(whatsappUrl, '_blank');
+                    }
+                });
             });
         });
-    });
-</script>
+    </script>
 </body>
 </html>

@@ -1,3 +1,7 @@
+<?php
+require 'db_connection.php';
+session_start(); // Para guardar temporariamente os dados do agendamento
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -13,7 +17,9 @@
             box-sizing: border-box;
             font-family: 'Montserrat', sans-serif;
         }
-        
+        html {
+            scroll-behavior: smooth;
+        }
         body {
             background-color: #f5f5f5;
             color: #333;
@@ -273,55 +279,116 @@
         }
         
         /* Serviços */
-        .services {
-            padding: 60px 0;
-            background-color: #fff;
-        }
-        
-        .services-grid {
+        .service-selection {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 20px;
-            margin-top: 30px;
+            gap: 12px;
+            margin: 20px 0;
         }
         
-        .service-card {
+        .service-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+        }
+        
+        .service-option:hover {
+            border-color: #d4af37;
+            background-color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .service-option.selected {
+            border-color: #d4af37;
+            background-color: rgba(212, 175, 55, 0.1);
+        }
+        
+        .service-option input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-right: 15px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .service-option input[type="checkbox"]:checked {
+            background-color: #d4af37;
+            border-color: #d4af37;
+        }
+        
+        .service-option input[type="checkbox"]:checked::after {
+            content: "✓";
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .service-info {
+            flex-grow: 1;
+        }
+        
+        .service-info h4 {
+            margin: 0 0 5px 0;
+            color: #1a1a1a;
+            font-size: 16px;
+        }
+        
+        .service-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        
+        .service-duration {
+            color: #666;
+        }
+        
+        .service-price {
+            color: #d4af37;
+            font-weight: 600;
+        }
+        
+        .service-total {
+            margin-top: 20px;
+            padding: 15px;
             background-color: #f5f5f5;
             border-radius: 10px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.3s;
+            text-align: right;
+            font-weight: 600;
         }
         
-        .service-card:hover {
-            background-color: #d4af37;
-            color: #fff;
-        }
-        
-        .service-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
+        .service-total span {
             color: #d4af37;
+            font-size: 18px;
         }
         
-        .service-card:hover .service-icon {
-            color: #fff;
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
         }
         
-        .service-card h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #333;
         }
         
-        .service-card p {
-            margin-bottom: 15px;
-            line-height: 1.6;
-            font-size: 15px;
-        }
-        
-        .price {
-            font-size: 20px;
-            font-weight: 700;
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
         }
         
         /* Contato */
@@ -533,6 +600,151 @@
             font-size: 14px;
         }
 
+        .booking-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        .booking-content {
+            background-color: #fff;
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        /* Estilos para os slots de horário */
+        #timeSlots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .time-slot {
+            background-color: #f5f5f5;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .time-slot:hover {
+            background-color: #d4af37;
+            color: white;
+            border-color: #d4af37;
+            transform: translateY(-2px);
+        }
+        
+        .time-slot.selected {
+            background-color: #d4af37;
+            color: white;
+            border-color: #d4af37;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .time-slot.unavailable {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        /* Melhorias no calendário */
+        #appointmentDate {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        
+        /* Estilo para os dias da semana no calendário */
+        #appointmentDate::-webkit-calendar-picker-indicator {
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            background-color: #f5f5f5;
+        }
+        
+        #appointmentDate::-webkit-calendar-picker-indicator:hover {
+            background-color: #e9e9e9;
+        }
+
+        .services {
+            padding: 60px 0;
+            background-color: #fff;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .service-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #eee;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .service-icon {
+            font-size: 40px;
+            color: #d4af37;
+            margin-bottom: 15px;
+        }
+
+        .service-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+
+        .service-card p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #d4af37;
+        }
+
+        @media (min-width: 768px) {
+            .services-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 30px;
+            }
+        }
+
+
         /* Media Queries para responsividade */
         @media (min-width: 768px) {
             .logo {
@@ -618,6 +830,79 @@
             .hero {
                 padding-top: 70px;
             }
+        }
+        .confirmation-container {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .confirmation-title {
+            color: #d4af37;
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .confirmation-details {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        .confirmation-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .confirmation-label {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .confirmation-value {
+            color: #555;
+            text-align: right;
+        }
+        
+        .confirmation-total {
+            font-weight: 700;
+            color: #d4af37;
+            font-size: 18px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #d4af37;
+        }
+        
+        .client-form {
+            margin-top: 20px;
+        }
+        
+        .client-form input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .confirmation-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .btn-cancel {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #e0e0e0;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -873,127 +1158,366 @@
         </div>
     </footer>
 
-    <!-- Modal de Agendamento Simplificado -->
+    <!-- Modal de Agendamento -->
     <div class="booking-modal" id="bookingModal">
         <div class="booking-content">
-            <span class="close-booking" id="closeBooking">&times;</span>
+            <span class="close-booking">&times;</span>
             
+            <!-- Passo 1: Escolher Barbeiro -->
+            <div id="step1">
+                <h3>Agende com seu Barbeiro</h3>
+                <?php
+                $barbeiros = $pdo->query("SELECT * FROM barbeiros")->fetchAll();
+                foreach ($barbeiros as $barbeiro): 
+                ?>
+                    <div class="barber-option" data-barber="<?= $barbeiro['id'] ?>">
+                        <img src="assets/<?= $barbeiro['foto'] ?>" alt="<?= $barbeiro['nome'] ?>">
+                        <div class="barber-info">
+                            <h4><?= $barbeiro['nome'] ?></h4>
+                            <p><?= $barbeiro['especialidade'] ?></p>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Passo 2: Selecionar Serviços -->
+            <div id="step2" style="display:none;">
             <div class="booking-title">
-                <h3>Agende com seu Barbeiro Preferido</h3>
-                <p>Escolha o profissional para seu atendimento</p>
+                <h3>Selecione seus serviços</h3>
+                <p>Escolha um ou mais serviços para agendar</p>
             </div>
             
-            <div class="barber-selection">
-                <div class="barber-option" data-barber="caua">
-                    <img src="assets/fotocaua.png" alt="Cauã">
-                    <div class="barber-info">
-                        <h4>Cauã</h4>
-                        <p>Especialista cortes modernos</p>
+            <div class="service-selection">
+                <?php
+                $servicos = $pdo->query("SELECT * FROM servicos")->fetchAll();
+                foreach ($servicos as $servico): 
+                ?>
+                    <label class="service-option">
+                        <input type="checkbox" id="servico-<?= $servico['id'] ?>" 
+                            data-service="<?= $servico['id'] ?>" 
+                            data-duration="<?= $servico['duracao'] ?>"
+                            data-price="<?= $servico['preco'] ?>">
+                        <div class="service-info">
+                            <h4><?= $servico['nome'] ?></h4>
+                            <div class="service-meta">
+                                <span class="service-duration"><?= $servico['duracao'] ?> min</span>
+                                <span class="service-price">R$ <?= number_format($servico['preco'], 2, ',', '.') ?></span>
+                            </div>
+                        </div>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+            
+            <div class="service-total">
+                Total: <span id="totalPrice">R$ 0,00</span> • <span id="totalDuration">0 min</span>
+            </div>
+            
+            <div class="navigation-buttons">
+                <button class="btn btn-secondary" id="backToStep1">Voltar</button>
+                <button class="btn" id="nextToStep3">Continuar</button>
+            </div>
+        </div>
+
+            <!-- Passo 3: Escolher Data/Horário -->
+            <div id="step3" style="display:none;">
+                <div class="booking-title">
+                    <h3>Escolha a Data e Horário</h3>
+                    <p>Selecione uma data abaixo para ver os horários disponíveis</p>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="appointmentDate" style="display: block; margin-bottom: 8px; font-weight: 500;">Data:</label>
+                    <input type="date" id="appointmentDate" min="<?= date('Y-m-d') ?>" style="width: 100%;">
+                </div>
+                
+                <div id="timeSlotsContainer" style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 15px; color: #555;">Horários Disponíveis</h4>
+                    <div id="timeSlots"></div>
+                </div>
+                
+                <button class="btn" id="backToStep2" style="margin-top: 20px; background-color: #f5f5f5; color: #333;">Voltar</button>
+            </div>
+
+            <!-- Passo 4: Confirmar Dados -->
+            <div id="step4" style="display:none;">
+                <div class="booking-title">
+                    <h3>Confirme seu Agendamento</h3>
+                    <p>Revise os detalhes abaixo e preencha seus dados</p>
+                </div>
+                
+                <div class="confirmation-container">
+                    <div class="confirmation-title">Detalhes do Agendamento</div>
+                    <div class="confirmation-details" id="confirmationDetails">
+                        <!-- Os detalhes serão preenchidos pelo JavaScript -->
                     </div>
                 </div>
-                <div class="barber-option" data-barber="vitinho">
-                    <img src="assets/fotovitor.png" alt="Vitinho">
-                    <div class="barber-info">
-                        <h4>Vitinho</h4>
-                        <p>Mestre em degradês e penteados</p>
+                
+                <form method="POST" action="salvar_agendamento.php" class="client-form">
+                    <input type="hidden" name="barbeiro_id" id="confirmBarbeiroId">
+                    <input type="hidden" name="servicos" id="confirmServicosIds">
+                    <input type="hidden" name="data" id="confirmData">
+                    <input type="hidden" name="hora" id="confirmHora">
+                    
+                    <input type="text" name="nome" placeholder="Seu Nome Completo" required>
+                    <input type="tel" name="telefone" placeholder="Seu WhatsApp (ex: 41999999999)" required>
+                    
+                    <div class="confirmation-actions">
+                        <button type="button" class="btn btn-cancel" id="backToStep3">Voltar</button>
+                        <button type="submit" class="btn">Confirmar Agendamento</button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
 
     <script>
-        // Sistema de Agendamento Simplificado
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elementos do modal
-            const bookingModal = document.getElementById('bookingModal');
-            const closeBooking = document.getElementById('closeBooking');
-            const bookNowButtons = document.querySelectorAll('.btn[href="#contact"], .btn[href="#home"], #bookNowHero');
-            
-            // Links de agendamento para cada barbeiro
-            const barberLinks = {
-                'caua': 'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0sbSQK6MpzVDWeMYRkEoeXGn6oOLipEdfWPotfIXY7GXlWUSPnD4CKpxy9AUF-Nbllg3MLvcWn',
-                'vitinho': 'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0jo7nuOHQktEtWNjoK7ciPVCyCIfYdCvm1Kixgeh-LSyVZXWXDbfKpEfT6SvJm-7-ruZEcFQJS'
-            };
-            
-            // Números de WhatsApp e mensagens para cada barbeiro
-            const whatsappContacts = {
-                'caua': {
-                    number: '554199888727',
-                    message: 'Olá Cauã, vim pelo site. Pode me ajudar?'
-                },
-                'vitinho': {
-                    number: '554188383629',
-                    message: 'Olá Vitinho, vim pelo site. Pode me ajudar?'
-                }
-            };
-            
-            // Menu Mobile
-            const menuToggle = document.querySelector('.menu-toggle');
-            const nav = document.querySelector('nav');
-            
-            menuToggle.addEventListener('click', function() {
-                nav.classList.toggle('active');
-            });
-            
-            // Fechar menu ao clicar em um link
-            document.querySelectorAll('nav a').forEach(link => {
-                link.addEventListener('click', function() {
-                    nav.classList.remove('active');
+    document.addEventListener('DOMContentLoaded', function() {
+        // Variáveis globais
+        let selectedBarber;
+        let selectedServices = [];
+        let totalPrice = 0;
+        let totalDuration = 0;
+
+        // Passo 1: Selecionar Barbeiro
+        document.querySelectorAll('.barber-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remover seleção anterior
+                document.querySelectorAll('.barber-option').forEach(el => {
+                    el.classList.remove('selected');
                 });
-            });
-            
-            // Abrir modal quando clicar em agendar
-            bookNowButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    bookingModal.style.display = 'block';
-                    document.body.style.overflow = 'hidden';
-                });
-            });
-            
-            // Fechar modal
-            closeBooking.addEventListener('click', function() {
-                bookingModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            });
-            
-            // Fechar ao clicar fora do modal
-            window.addEventListener('click', function(e) {
-                if (e.target === bookingModal) {
-                    bookingModal.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                }
-            });
-            
-            // Seleção de barbeiro
-            const barberOptions = document.querySelectorAll('.barber-option');
-            
-            barberOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    const barberId = this.getAttribute('data-barber');
-                    
-                    // Redirecionar para o link do barbeiro correspondente
-                    if (barberLinks[barberId]) {
-                        window.location.href = barberLinks[barberId];
-                    }
-                });
-            });
-            
-            // Configurar links do WhatsApp
-            document.querySelectorAll('.whatsapp-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const barberId = this.getAttribute('data-barber');
-                    const contact = whatsappContacts[barberId];
-                    
-                    if (contact) {
-                        const whatsappUrl = `https://wa.me/${contact.number}?text=${encodeURIComponent(contact.message)}`;
-                        window.open(whatsappUrl, '_blank');
-                    }
-                });
+                // Adicionar seleção atual
+                this.classList.add('selected');
+                
+                selectedBarber = this.getAttribute('data-barber');
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+                
+                // Resetar seleções ao voltar para escolher barbeiro
+                selectedServices = [];
+                totalPrice = 0;
+                totalDuration = 0;
+                updateTotals();
             });
         });
-    </script>
+
+        // Passo 2: Selecionar Serviços
+        document.querySelectorAll('.service-option input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const serviceId = this.getAttribute('data-service');
+                const duration = parseInt(this.getAttribute('data-duration'));
+                const price = parseFloat(this.getAttribute('data-price'));
+                
+                if (this.checked) {
+                    selectedServices.push(serviceId);
+                    totalDuration += duration;
+                    totalPrice += price;
+                    this.closest('.service-option').classList.add('selected');
+                } else {
+                    selectedServices = selectedServices.filter(id => id !== serviceId);
+                    totalDuration -= duration;
+                    totalPrice -= price;
+                    this.closest('.service-option').classList.remove('selected');
+                }
+                
+                updateTotals();
+            });
+        });
+
+        // Função para atualizar totais
+        function updateTotals() {
+            document.getElementById('totalPrice').textContent = `R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+            document.getElementById('totalDuration').textContent = `${totalDuration} min`;
+        }
+
+        // Navegação entre passos
+        document.getElementById('backToStep1').addEventListener('click', function() {
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
+        });
+
+        document.getElementById('nextToStep3').addEventListener('click', function() {
+            if (selectedServices.length === 0) {
+                alert('Por favor, selecione pelo menos um serviço');
+                return;
+            }
+            
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3').style.display = 'block';
+            loadAvailableDates();
+        });
+
+        document.getElementById('backToStep2').addEventListener('click', function() {
+            document.getElementById('step3').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+        });
+
+        // Passo 3: Carregar Datas/Horários Disponíveis
+        function loadAvailableDates() {
+            const dateInput = document.getElementById('appointmentDate');
+            dateInput.addEventListener('change', function() {
+                if (!this.value) return;
+                
+                fetch(`get_horarios.php?barbeiro_id=${selectedBarber}&data=${this.value}&duracao=${totalDuration}`)
+                    .then(response => response.json())
+                    .then(horarios => {
+                        const timeSlots = document.getElementById('timeSlots');
+                        timeSlots.innerHTML = '';
+                        
+                        if (horarios.length === 0) {
+                            timeSlots.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">Nenhum horário disponível para esta data</p>';
+                            return;
+                        }
+                        
+                        // Agrupar horários por período (manhã/tarde)
+                        const manha = [];
+                        const tarde = [];
+                        
+                        horarios.forEach(horario => {
+                            const hora = parseInt(horario.split(':')[0]);
+                            if (hora < 12) {
+                                manha.push(horario);
+                            } else {
+                                tarde.push(horario);
+                            }
+                        });
+                        
+                        // Adicionar título para manhã se houver horários
+                        if (manha.length > 0) {
+                            const tituloManha = document.createElement('h5');
+                            tituloManha.textContent = 'Manhã';
+                            tituloManha.style.gridColumn = '1/-1';
+                            tituloManha.style.marginTop = '10px';
+                            tituloManha.style.color = '#555';
+                            timeSlots.appendChild(tituloManha);
+                            
+                            manha.forEach(horario => {
+                                timeSlots.appendChild(createTimeSlot(horario));
+                            });
+                        }
+                        
+                        // Adicionar título para tarde se houver horários
+                        if (tarde.length > 0) {
+                            const tituloTarde = document.createElement('h5');
+                            tituloTarde.textContent = 'Tarde';
+                            tituloTarde.style.gridColumn = '1/-1';
+                            tituloTarde.style.marginTop = '10px';
+                            tituloTarde.style.color = '#555';
+                            timeSlots.appendChild(tituloTarde);
+                            
+                            tarde.forEach(horario => {
+                                timeSlots.appendChild(createTimeSlot(horario));
+                            });
+                        }
+                    });
+            });
+        }
+
+        // Função auxiliar para criar um slot de horário
+        function createTimeSlot(horario) {
+            const button = document.createElement('button');
+            button.textContent = horario;
+            button.className = 'time-slot';
+            button.addEventListener('click', function() {
+                // Remover seleção anterior
+                document.querySelectorAll('.time-slot.selected').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                // Selecionar este
+                this.classList.add('selected');
+                selectTime(horario);
+            });
+            return button;
+        }
+
+        // Passo 4: Confirmar Agendamento
+        function selectTime(horario) {
+            const data = document.getElementById('appointmentDate').value;
+            
+            // Preencher formulário oculto
+            document.getElementById('confirmBarbeiroId').value = selectedBarber;
+            document.getElementById('confirmServicosIds').value = selectedServices.join(',');
+            document.getElementById('confirmData').value = data;
+            document.getElementById('confirmHora').value = horario;
+            
+            // Mostrar resumo
+            const confirmationDetails = document.getElementById('confirmationDetails');
+            confirmationDetails.innerHTML = `
+                <div class="confirmation-item">
+                    <span class="confirmation-label">Barbeiro:</span>
+                    <span class="confirmation-value">${document.querySelector(`.barber-option[data-barber="${selectedBarber}"] h4`).textContent}</span>
+                </div>
+                <div class="confirmation-item">
+                    <span class="confirmation-label">Serviços:</span>
+                    <span class="confirmation-value">
+                        ${selectedServices.map(id => {
+                            const el = document.querySelector(`input[data-service="${id}"]`);
+                            return el ? el.closest('.service-option').querySelector('h4').textContent : '';
+                        }).join('<br>')}
+                    </span>
+                </div>
+                <div class="confirmation-item">
+                    <span class="confirmation-label">Data:</span>
+                    <span class="confirmation-value">${formatDate(data)}</span>
+                </div>
+                <div class="confirmation-item">
+                    <span class="confirmation-label">Horário:</span>
+                    <span class="confirmation-value">${horario}</span>
+                </div>
+                <div class="confirmation-item">
+                    <span class="confirmation-label">Duração:</span>
+                    <span class="confirmation-value">${totalDuration} minutos</span>
+                </div>
+                <div class="confirmation-total">
+                    <span>Valor Total: R$ ${totalPrice.toFixed(2).replace('.', ',')}</span>
+                </div>
+            `;
+            
+            document.getElementById('step3').style.display = 'none';
+            document.getElementById('step4').style.display = 'block';
+        }
+
+        // Adicione também o botão de voltar no JavaScript
+        document.getElementById('backToStep3').addEventListener('click', function() {
+            document.getElementById('step4').style.display = 'none';
+            document.getElementById('step3').style.display = 'block';
+        });
+
+        // Função para formatar data
+        function formatDate(dateString) {
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            return new Date(dateString).toLocaleDateString('pt-BR', options);
+        }
+
+        // Abrir modal quando clicar em "Agende seu horário"
+        document.getElementById('bookNowHero').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('bookingModal').style.display = 'block';
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3').style.display = 'none';
+            document.getElementById('step4').style.display = 'none';
+            
+            // Resetar seleções ao abrir o modal
+            selectedBarber = null;
+            selectedServices = [];
+            totalPrice = 0;
+            totalDuration = 0;
+            updateTotals();
+            
+            // Remover seleções visuais
+            document.querySelectorAll('.barber-option, .service-option, .time-slot').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelectorAll('.service-option input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        });
+
+        // Fechar modal
+        document.querySelector('.close-booking').addEventListener('click', function() {
+            document.getElementById('bookingModal').style.display = 'none';
+        });
+    });
+</script>
 </body>
 </html>

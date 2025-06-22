@@ -529,6 +529,14 @@ session_start(); // Para guardar temporariamente os dados do agendamento
             width: 90%;
             max-width: 500px;
             position: relative;
+            transition: all 0.3s ease;
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        .booking-content.show {
+            transform: translateY(0);
+            opacity: 1;
         }
 
         .close-booking {
@@ -540,86 +548,109 @@ session_start(); // Para guardar temporariamente os dados do agendamento
             color: #1a1a1a;
         }
 
-        .booking-title {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .booking-title h3 {
-            font-size: 22px;
-            margin-bottom: 5px;
-        }
-
-        .booking-title p {
-            font-size: 15px;
-            color: #555;
-        }
-
         .barber-selection {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 15px;
-            margin-top: 15px;
+            gap: 20px;
+            margin-top: 20px;
         }
 
         .barber-option {
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
+            background-color: #fff;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
         }
 
         .barber-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             border-color: #d4af37;
         }
 
         .barber-option.selected {
             border-color: #d4af37;
-            background-color: rgba(212, 175, 55, 0.1);
+            background-color: rgba(212, 175, 55, 0.05);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.1);
         }
 
         .barber-option img {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             object-fit: cover;
+            border: 3px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .barber-option.selected img {
+            border-color: #d4af37;
+        }
+
+        .barber-option .barber-info {
+            flex-grow: 1;
         }
 
         .barber-option .barber-info h4 {
-            margin-bottom: 5px;
+            margin: 0 0 5px 0;
             color: #1a1a1a;
             font-size: 18px;
+            font-weight: 600;
         }
 
         .barber-option .barber-info p {
-            color: #777;
+            color: #666;
             font-size: 14px;
+            margin: 0;
         }
 
-        .booking-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            overflow-y: auto;
+        .barber-option .barber-rating {
+            color: #d4af37;
+            font-size: 14px;
+            margin-top: 5px;
         }
 
-        .booking-content {
-            background-color: #fff;
-            margin: 30px auto;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
+        .barber-option .barber-badge {
+            background-color: #d4af37;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        /* Título melhorado */
+        .booking-title h3 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: #1a1a1a;
             position: relative;
+            padding-bottom: 10px;
+        }
+
+        .booking-title h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background-color: #d4af37;
+        }
+
+        .booking-title p {
+            font-size: 15px;
+            color: #666;
+            margin-top: 10px;
         }
 
         /* Estilos para os slots de horário */
@@ -737,6 +768,42 @@ session_start(); // Para guardar temporariamente os dados do agendamento
             color: #d4af37;
         }
 
+        /* Estilo para o spinner de loading */
+        .loading-spinner {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .loading-spinner i {
+            margin-right: 10px;
+            color: #d4af37;
+        }
+
+        /* Efeito de hover para a seta do barbeiro */
+        .barber-option .fa-chevron-right {
+            transition: transform 0.3s ease;
+        }
+
+        /* Responsividade para mobile */
+        @media (max-width: 576px) {
+            .barber-option {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .barber-option img {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .barber-option .fa-chevron-right {
+                display: none;
+            }
+        }
+        
         @media (min-width: 768px) {
             .services-grid {
                 grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -907,6 +974,7 @@ session_start(); // Para guardar temporariamente os dados do agendamento
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <!-- Cabeçalho -->
@@ -914,7 +982,7 @@ session_start(); // Para guardar temporariamente os dados do agendamento
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <img src="assets/logo.png" alt="Logo Legacy Style" style="height: 60px; vertical-align: middle;">
+                    <a href="login.php"><img src="assets/logo.png" alt="Logo Legacy Style" style="height: 60px; vertical-align: middle;"></a>
                 </div>
                 <div class="logo">LEGACY <span>STYLE</span></div>
                 <div class="menu-toggle">
@@ -1165,19 +1233,35 @@ session_start(); // Para guardar temporariamente os dados do agendamento
             
             <!-- Passo 1: Escolher Barbeiro -->
             <div id="step1">
-                <h3>Agende com seu Barbeiro</h3>
-                <?php
-                $barbeiros = $pdo->query("SELECT * FROM barbeiros")->fetchAll();
-                foreach ($barbeiros as $barbeiro): 
-                ?>
-                    <div class="barber-option" data-barber="<?= $barbeiro['id'] ?>">
-                        <img src="assets/<?= $barbeiro['foto'] ?>" alt="<?= $barbeiro['nome'] ?>">
-                        <div class="barber-info">
-                            <h4><?= $barbeiro['nome'] ?></h4>
-                            <p><?= $barbeiro['especialidade'] ?></p>
+                <div class="booking-title">
+                    <h3>Escolha seu Barbeiro</h3>
+                    <p>Selecione o profissional que melhor atende às suas necessidades</p>
+                </div>
+                
+                <div class="barber-selection">
+                    <?php
+                    $barbeiros = $pdo->query("SELECT * FROM barbeiros")->fetchAll();
+                    foreach ($barbeiros as $barbeiro): 
+                    ?>
+                        <div class="barber-option" data-barber="<?= $barbeiro['id'] ?>">
+                            <img src="assets/<?= $barbeiro['foto'] ?>" alt="<?= $barbeiro['nome'] ?>">
+                            <div class="barber-info">
+                                <h4><?= $barbeiro['nome'] ?></h4>
+                                <p><?= $barbeiro['especialidade'] ?></p>
+                                <div class="barber-rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                    (<?= rand(20, 100) ?> avaliações)
+                                </div>
+                                <span class="barber-badge"><?= rand(80, 95) ?>% de satisfação</span>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: #d4af37;"></i>
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             </div>
 
             <!-- Passo 2: Selecionar Serviços -->
@@ -1271,253 +1355,283 @@ session_start(); // Para guardar temporariamente os dados do agendamento
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Variáveis globais
-        let selectedBarber;
-        let selectedServices = [];
-        let totalPrice = 0;
-        let totalDuration = 0;
+document.addEventListener('DOMContentLoaded', function() {
+    // Variáveis globais
+    let selectedBarber;
+    let selectedServices = [];
+    let totalPrice = 0;
+    let totalDuration = 0;
 
-        // Passo 1: Selecionar Barbeiro
-        document.querySelectorAll('.barber-option').forEach(option => {
-            option.addEventListener('click', function() {
-                // Remover seleção anterior
-                document.querySelectorAll('.barber-option').forEach(el => {
-                    el.classList.remove('selected');
-                });
-                // Adicionar seleção atual
-                this.classList.add('selected');
-                
-                selectedBarber = this.getAttribute('data-barber');
-                document.getElementById('step1').style.display = 'none';
-                document.getElementById('step2').style.display = 'block';
-                
-                // Resetar seleções ao voltar para escolher barbeiro
-                selectedServices = [];
-                totalPrice = 0;
-                totalDuration = 0;
-                updateTotals();
+    // Passo 1: Selecionar Barbeiro
+    document.querySelectorAll('.barber-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // Remover seleção anterior
+            document.querySelectorAll('.barber-option').forEach(el => {
+                el.classList.remove('selected');
+                el.querySelector('.fa-chevron-right').style.transform = 'translateX(0)';
             });
-        });
-
-        // Passo 2: Selecionar Serviços
-        document.querySelectorAll('.service-option input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const serviceId = this.getAttribute('data-service');
-                const duration = parseInt(this.getAttribute('data-duration'));
-                const price = parseFloat(this.getAttribute('data-price'));
-                
-                if (this.checked) {
-                    selectedServices.push(serviceId);
-                    totalDuration += duration;
-                    totalPrice += price;
-                    this.closest('.service-option').classList.add('selected');
-                } else {
-                    selectedServices = selectedServices.filter(id => id !== serviceId);
-                    totalDuration -= duration;
-                    totalPrice -= price;
-                    this.closest('.service-option').classList.remove('selected');
-                }
-                
-                updateTotals();
-            });
-        });
-
-        // Função para atualizar totais
-        function updateTotals() {
-            document.getElementById('totalPrice').textContent = `R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
-            document.getElementById('totalDuration').textContent = `${totalDuration} min`;
-        }
-
-        // Navegação entre passos
-        document.getElementById('backToStep1').addEventListener('click', function() {
-            document.getElementById('step2').style.display = 'none';
-            document.getElementById('step1').style.display = 'block';
-        });
-
-        document.getElementById('nextToStep3').addEventListener('click', function() {
-            if (selectedServices.length === 0) {
-                alert('Por favor, selecione pelo menos um serviço');
-                return;
-            }
             
-            document.getElementById('step2').style.display = 'none';
-            document.getElementById('step3').style.display = 'block';
-            loadAvailableDates();
-        });
-
-        document.getElementById('backToStep2').addEventListener('click', function() {
-            document.getElementById('step3').style.display = 'none';
+            // Adicionar seleção atual
+            this.classList.add('selected');
+            this.querySelector('.fa-chevron-right').style.transform = 'translateX(5px)';
+            
+            selectedBarber = this.getAttribute('data-barber');
+            document.getElementById('step1').style.display = 'none';
             document.getElementById('step2').style.display = 'block';
-        });
-
-        // Passo 3: Carregar Datas/Horários Disponíveis
-        function loadAvailableDates() {
-            const dateInput = document.getElementById('appointmentDate');
-            dateInput.addEventListener('change', function() {
-                if (!this.value) return;
-                
-                fetch(`get_horarios.php?barbeiro_id=${selectedBarber}&data=${this.value}&duracao=${totalDuration}`)
-                    .then(response => response.json())
-                    .then(horarios => {
-                        const timeSlots = document.getElementById('timeSlots');
-                        timeSlots.innerHTML = '';
-                        
-                        if (horarios.length === 0) {
-                            timeSlots.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">Nenhum horário disponível para esta data</p>';
-                            return;
-                        }
-                        
-                        // Agrupar horários por período (manhã/tarde)
-                        const manha = [];
-                        const tarde = [];
-                        
-                        horarios.forEach(horario => {
-                            const hora = parseInt(horario.split(':')[0]);
-                            if (hora < 12) {
-                                manha.push(horario);
-                            } else {
-                                tarde.push(horario);
-                            }
-                        });
-                        
-                        // Adicionar título para manhã se houver horários
-                        if (manha.length > 0) {
-                            const tituloManha = document.createElement('h5');
-                            tituloManha.textContent = 'Manhã';
-                            tituloManha.style.gridColumn = '1/-1';
-                            tituloManha.style.marginTop = '10px';
-                            tituloManha.style.color = '#555';
-                            timeSlots.appendChild(tituloManha);
-                            
-                            manha.forEach(horario => {
-                                timeSlots.appendChild(createTimeSlot(horario));
-                            });
-                        }
-                        
-                        // Adicionar título para tarde se houver horários
-                        if (tarde.length > 0) {
-                            const tituloTarde = document.createElement('h5');
-                            tituloTarde.textContent = 'Tarde';
-                            tituloTarde.style.gridColumn = '1/-1';
-                            tituloTarde.style.marginTop = '10px';
-                            tituloTarde.style.color = '#555';
-                            timeSlots.appendChild(tituloTarde);
-                            
-                            tarde.forEach(horario => {
-                                timeSlots.appendChild(createTimeSlot(horario));
-                            });
-                        }
-                    });
-            });
-        }
-
-        // Função auxiliar para criar um slot de horário
-        function createTimeSlot(horario) {
-            const button = document.createElement('button');
-            button.textContent = horario;
-            button.className = 'time-slot';
-            button.addEventListener('click', function() {
-                // Remover seleção anterior
-                document.querySelectorAll('.time-slot.selected').forEach(el => {
-                    el.classList.remove('selected');
-                });
-                // Selecionar este
-                this.classList.add('selected');
-                selectTime(horario);
-            });
-            return button;
-        }
-
-        // Passo 4: Confirmar Agendamento
-        function selectTime(horario) {
-            const data = document.getElementById('appointmentDate').value;
             
-            // Preencher formulário oculto
-            document.getElementById('confirmBarbeiroId').value = selectedBarber;
-            document.getElementById('confirmServicosIds').value = selectedServices.join(',');
-            document.getElementById('confirmData').value = data;
-            document.getElementById('confirmHora').value = horario;
-            
-            // Mostrar resumo
-            const confirmationDetails = document.getElementById('confirmationDetails');
-            confirmationDetails.innerHTML = `
-                <div class="confirmation-item">
-                    <span class="confirmation-label">Barbeiro:</span>
-                    <span class="confirmation-value">${document.querySelector(`.barber-option[data-barber="${selectedBarber}"] h4`).textContent}</span>
-                </div>
-                <div class="confirmation-item">
-                    <span class="confirmation-label">Serviços:</span>
-                    <span class="confirmation-value">
-                        ${selectedServices.map(id => {
-                            const el = document.querySelector(`input[data-service="${id}"]`);
-                            return el ? el.closest('.service-option').querySelector('h4').textContent : '';
-                        }).join('<br>')}
-                    </span>
-                </div>
-                <div class="confirmation-item">
-                    <span class="confirmation-label">Data:</span>
-                    <span class="confirmation-value">${formatDate(data)}</span>
-                </div>
-                <div class="confirmation-item">
-                    <span class="confirmation-label">Horário:</span>
-                    <span class="confirmation-value">${horario}</span>
-                </div>
-                <div class="confirmation-item">
-                    <span class="confirmation-label">Duração:</span>
-                    <span class="confirmation-value">${totalDuration} minutos</span>
-                </div>
-                <div class="confirmation-total">
-                    <span>Valor Total: R$ ${totalPrice.toFixed(2).replace('.', ',')}</span>
-                </div>
-            `;
-            
-            document.getElementById('step3').style.display = 'none';
-            document.getElementById('step4').style.display = 'block';
-        }
-
-        // Adicione também o botão de voltar no JavaScript
-        document.getElementById('backToStep3').addEventListener('click', function() {
-            document.getElementById('step4').style.display = 'none';
-            document.getElementById('step3').style.display = 'block';
-        });
-
-        // Função para formatar data
-        function formatDate(dateString) {
-            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-            return new Date(dateString).toLocaleDateString('pt-BR', options);
-        }
-
-        // Abrir modal quando clicar em "Agende seu horário"
-        document.getElementById('bookNowHero').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('bookingModal').style.display = 'block';
-            document.getElementById('step1').style.display = 'block';
-            document.getElementById('step2').style.display = 'none';
-            document.getElementById('step3').style.display = 'none';
-            document.getElementById('step4').style.display = 'none';
-            
-            // Resetar seleções ao abrir o modal
-            selectedBarber = null;
+            // Resetar seleções ao voltar para escolher barbeiro
             selectedServices = [];
             totalPrice = 0;
             totalDuration = 0;
             updateTotals();
-            
-            // Remover seleções visuais
-            document.querySelectorAll('.barber-option, .service-option, .time-slot').forEach(el => {
-                el.classList.remove('selected');
-            });
-            document.querySelectorAll('.service-option input[type="checkbox"]').forEach(checkbox => {
-                checkbox.checked = false;
-            });
-        });
-
-        // Fechar modal
-        document.querySelector('.close-booking').addEventListener('click', function() {
-            document.getElementById('bookingModal').style.display = 'none';
         });
     });
+
+    // Passo 2: Selecionar Serviços
+    document.querySelectorAll('.service-option input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const serviceId = this.getAttribute('data-service');
+            const duration = parseInt(this.getAttribute('data-duration'));
+            const price = parseFloat(this.getAttribute('data-price'));
+            
+            if (this.checked) {
+                selectedServices.push(serviceId);
+                totalDuration += duration;
+                totalPrice += price;
+                this.closest('.service-option').classList.add('selected');
+            } else {
+                selectedServices = selectedServices.filter(id => id !== serviceId);
+                totalDuration -= duration;
+                totalPrice -= price;
+                this.closest('.service-option').classList.remove('selected');
+            }
+            
+            updateTotals();
+        });
+    });
+
+    // Função para atualizar totais
+    function updateTotals() {
+        document.getElementById('totalPrice').textContent = `R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+        document.getElementById('totalDuration').textContent = `${totalDuration} min`;
+    }
+
+    // Navegação entre passos
+    document.getElementById('backToStep1').addEventListener('click', function() {
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step1').style.display = 'block';
+    });
+
+    document.getElementById('nextToStep3').addEventListener('click', function() {
+        if (selectedServices.length === 0) {
+            alert('Por favor, selecione pelo menos um serviço');
+            return;
+        }
+        
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step3').style.display = 'block';
+        loadAvailableDates();
+    });
+
+    document.getElementById('backToStep2').addEventListener('click', function() {
+        document.getElementById('step3').style.display = 'none';
+        document.getElementById('step2').style.display = 'block';
+    });
+
+    // Passo 3: Carregar Datas/Horários Disponíveis
+    function loadAvailableDates() {
+        const dateInput = document.getElementById('appointmentDate');
+        dateInput.addEventListener('change', function() {
+            if (!this.value) return;
+            
+            const timeSlots = document.getElementById('timeSlots');
+            timeSlots.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Carregando horários...</div>';
+            
+            fetch(`get_horarios.php?barbeiro_id=${selectedBarber}&data=${this.value}&duracao=${totalDuration}`)
+                .then(response => response.json())
+                .then(horarios => {
+                    timeSlots.innerHTML = '';
+                    
+                    if (horarios.length === 0) {
+                        timeSlots.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">Nenhum horário disponível para esta data</p>';
+                        return;
+                    }
+                    
+                    // Agrupar horários por período (manhã/tarde)
+                    const manha = [];
+                    const tarde = [];
+                    
+                    horarios.forEach(horario => {
+                        const hora = parseInt(horario.split(':')[0]);
+                        if (hora < 12) {
+                            manha.push(horario);
+                        } else {
+                            tarde.push(horario);
+                        }
+                    });
+                    
+                    // Adicionar título para manhã se houver horários
+                    if (manha.length > 0) {
+                        const tituloManha = document.createElement('h5');
+                        tituloManha.textContent = 'Manhã';
+                        tituloManha.style.gridColumn = '1/-1';
+                        tituloManha.style.marginTop = '10px';
+                        tituloManha.style.color = '#555';
+                        timeSlots.appendChild(tituloManha);
+                        
+                        manha.forEach(horario => {
+                            timeSlots.appendChild(createTimeSlot(horario));
+                        });
+                    }
+                    
+                    // Adicionar título para tarde se houver horários
+                    if (tarde.length > 0) {
+                        const tituloTarde = document.createElement('h5');
+                        tituloTarde.textContent = 'Tarde';
+                        tituloTarde.style.gridColumn = '1/-1';
+                        tituloTarde.style.marginTop = '10px';
+                        tituloTarde.style.color = '#555';
+                        timeSlots.appendChild(tituloTarde);
+                        
+                        tarde.forEach(horario => {
+                            timeSlots.appendChild(createTimeSlot(horario));
+                        });
+                    }
+                })
+                .catch(error => {
+                    timeSlots.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #721c24;">Ocorreu um erro ao carregar os horários. Por favor, tente novamente.</p>';
+                    console.error('Erro ao carregar horários:', error);
+                });
+        });
+    }
+
+    // Função auxiliar para criar um slot de horário
+    function createTimeSlot(horario) {
+        const button = document.createElement('button');
+        button.textContent = horario;
+        button.className = 'time-slot';
+        button.addEventListener('click', function() {
+            // Remover seleção anterior
+            document.querySelectorAll('.time-slot.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            // Selecionar este
+            this.classList.add('selected');
+            selectTime(horario);
+        });
+        return button;
+    }
+
+    // Passo 4: Confirmar Agendamento
+    function selectTime(horario) {
+        const data = document.getElementById('appointmentDate').value;
+        
+        // Preencher formulário oculto
+        document.getElementById('confirmBarbeiroId').value = selectedBarber;
+        document.getElementById('confirmServicosIds').value = selectedServices.join(',');
+        document.getElementById('confirmData').value = data;
+        document.getElementById('confirmHora').value = horario;
+        
+        // Mostrar resumo
+        const confirmationDetails = document.getElementById('confirmationDetails');
+        confirmationDetails.innerHTML = `
+            <div class="confirmation-item">
+                <span class="confirmation-label">Barbeiro:</span>
+                <span class="confirmation-value">${document.querySelector(`.barber-option[data-barber="${selectedBarber}"] h4`).textContent}</span>
+            </div>
+            <div class="confirmation-item">
+                <span class="confirmation-label">Serviços:</span>
+                <span class="confirmation-value">
+                    ${selectedServices.map(id => {
+                        const el = document.querySelector(`input[data-service="${id}"]`);
+                        return el ? el.closest('.service-option').querySelector('h4').textContent : '';
+                    }).join('<br>')}
+                </span>
+            </div>
+            <div class="confirmation-item">
+                <span class="confirmation-label">Data:</span>
+                <span class="confirmation-value">${formatDate(data)}</span>
+            </div>
+            <div class="confirmation-item">
+                <span class="confirmation-label">Horário:</span>
+                <span class="confirmation-value">${horario}</span>
+            </div>
+            <div class="confirmation-item">
+                <span class="confirmation-label">Duração:</span>
+                <span class="confirmation-value">${totalDuration} minutos</span>
+            </div>
+            <div class="confirmation-total">
+                <span>Valor Total: R$ ${totalPrice.toFixed(2).replace('.', ',')}</span>
+            </div>
+        `;
+        
+        document.getElementById('step3').style.display = 'none';
+        document.getElementById('step4').style.display = 'block';
+    }
+
+    // Botão de voltar
+    document.getElementById('backToStep3').addEventListener('click', function() {
+        document.getElementById('step4').style.display = 'none';
+        document.getElementById('step3').style.display = 'block';
+    });
+
+    // Função para formatar data
+    function formatDate(dateString) {
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+        return new Date(dateString).toLocaleDateString('pt-BR', options);
+    }
+
+    // Abrir modal quando clicar em "Agende seu horário"
+    document.getElementById('bookNowHero').addEventListener('click', function(e) {
+        e.preventDefault();
+        const modal = document.getElementById('bookingModal');
+        const content = document.querySelector('.booking-content');
+        
+        modal.style.display = 'block';
+        setTimeout(() => {
+            content.classList.add('show');
+        }, 10);
+        
+        // Resetar seleções ao abrir o modal
+        selectedBarber = null;
+        selectedServices = [];
+        totalPrice = 0;
+        totalDuration = 0;
+        updateTotals();
+        
+        // Remover seleções visuais
+        document.querySelectorAll('.barber-option, .service-option, .time-slot').forEach(el => {
+            el.classList.remove('selected');
+        });
+        document.querySelectorAll('.service-option input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+    });
+
+    // Fechar modal
+    document.querySelector('.close-booking').addEventListener('click', function() {
+        const modal = document.getElementById('bookingModal');
+        const content = document.querySelector('.booking-content');
+        
+        content.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    });
+
+    // Fechar modal ao clicar fora do conteúdo
+    document.getElementById('bookingModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            const modal = document.getElementById('bookingModal');
+            const content = document.querySelector('.booking-content');
+            
+            content.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+    });
+});
 </script>
 </body>
 </html>

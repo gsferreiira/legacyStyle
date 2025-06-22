@@ -1,5 +1,6 @@
 <?php
 session_start();
+$filter_date = isset($_GET['date']) ? $_GET['date'] : null;
 require 'db_connection.php';
 
 // Verifica se o barbeiro está logado
@@ -17,14 +18,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancelar_id'])) {
 }
 
 // Busca agendamentos
-$agendamentos = $pdo->query("
+$sql = "
     SELECT a.*, b.nome AS barbeiro_nome, s.nome AS servico_nome 
     FROM agendamentos a
     JOIN barbeiros b ON a.id_barbeiro = b.id
     JOIN servicos s ON a.id_servico = s.id
-    WHERE a.data >= CURDATE()
-    ORDER BY a.data, a.hora
-")->fetchAll();
+    WHERE a.id_barbeiro = ?
+";
+$params = [$_SESSION['barbeiro_id']];
+
+if ($filter_date) {
+    $sql .= " AND a.data = ?";
+    $params[] = $filter_date;
+} else {
+    $sql .= " AND a.data >= CURDATE()";
+}
+
+$sql .= " ORDER BY a.data, a.hora";
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$agendamentos = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html>
@@ -205,7 +218,7 @@ $agendamentos = $pdo->query("
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-cut"></i> Painel Admin - Legacy Style</h1>
+            <h1><i class="fas fa-cut"></i> Painel do <?= htmlspecialchars($_SESSION['barbeiro_nome']) ?></h1>
             <a href="logout.php" class="logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
         </div>
         

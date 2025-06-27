@@ -19,25 +19,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancelar_id'])) {
 
 // Busca agendamentos
 $sql = "
-    SELECT a.*, b.nome AS barbeiro_nome, s.nome AS servico_nome 
+    SELECT 
+        a.*, 
+        b.nome AS barbeiro_nome,
+        s.nome AS servico_nome,
+        s.duracao AS servico_duracao
     FROM agendamentos a
     JOIN barbeiros b ON a.id_barbeiro = b.id
-    JOIN servicos s ON a.id_servico = s.id
+    JOIN servicos s ON FIND_IN_SET(s.id, a.id_servico)
     WHERE a.id_barbeiro = ?
 ";
+
 $params = [$_SESSION['barbeiro_id']];
 
 if ($filter_date) {
     $sql .= " AND a.data = ?";
     $params[] = $filter_date;
-} else {
-    $sql .= " AND a.data >= CURDATE()";
 }
 
-$sql .= " ORDER BY a.data, a.hora";
+$sql .= " ORDER BY a.nome_cliente, a.data, a.hora";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $agendamentos = $stmt->fetchAll();
+
+// Agrupa por cliente para exibição
+$agendamentos_agrupados = [];
+foreach ($agendamentos as $agendamento) {
+    $servicos = explode(',', $agendamento['id_servico']);
+    $nomes_servicos = explode(',', $agendamento['servico_nome']);
+    $duracoes_servicos = explode(',', $agendamento['servico_duracao']);
+    
+    foreach ($servicos as $index => $servico_id) {
+        $agendamento_copy = $agendamento;
+        $agendamento_copy['servico_nome'] = $nomes_servicos[$index];
+        $agendamento_copy['servico_duracao'] = $duracoes_servicos[$index];
+        $agendamentos_agrupados[] = $agendamento_copy;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -152,7 +170,7 @@ $agendamentos = $stmt->fetchAll();
         }
         
         .btn {
-            padding: 6px 12px;
+            padding: 8px 22px;
             border-radius: 4px;
             border: none;
             cursor: pointer;
@@ -172,10 +190,20 @@ $agendamentos = $stmt->fetchAll();
         .btn-whatsapp {
             background-color: #25D366;
             color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
         }
-        
+
         .btn-whatsapp:hover {
             background-color: #1da851;
+            transform: none; /* Removendo o translateY se existia */
+            box-shadow: none; /* Removendo sombra se existia */
         }
         
         .no-appointments {
@@ -232,26 +260,33 @@ $agendamentos = $stmt->fetchAll();
             </div>
             
             <table>
-                <thead>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Data</th>
+                    <th>Serviço</th>
+                    <th>Horário</th>
+                    <th>Duração</th>
+                    <th>Contato</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($agendamentos_agrupados)): ?>
                     <tr>
-                        <th>Data</th>
-                        <th>Cliente</th>
-                        <th>Barbeiro</th>
-                        <th>Serviço</th>
-                        <th>Horário</th>
-                        <th>Duração</th>
-                        <th>Contato</th>
-                        <th>Ações</th>
+                        <td colspan="7" class="no-appointments">Nenhum agendamento encontrado</td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($agendamentos)): ?>
+                <?php else: ?>
+                    <?php 
+                    $cliente_anterior = null;
+                    foreach ($agendamentos_agrupados as $agendamento): 
+                    ?>
                         <tr>
-                            <td colspan="8" class="no-appointments">Nenhum agendamento encontrado</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($agendamentos as $agendamento): ?>
-                        <tr>
+                            <td>
+                                <?php if ($cliente_anterior != $agendamento['nome_cliente']): ?>
+                                    <?= htmlspecialchars($agendamento['nome_cliente']) ?>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <?= date('d/m/Y', strtotime($agendamento['data'])) ?>
                                 <?php if (date('Y-m-d') == $agendamento['data']): ?>
@@ -260,14 +295,12 @@ $agendamentos = $stmt->fetchAll();
                                     <span class="badge badge-upcoming">Futuro</span>
                                 <?php endif; ?>
                             </td>
-                            <td><?= htmlspecialchars($agendamento['nome_cliente']) ?></td>
-                            <td><?= htmlspecialchars($agendamento['barbeiro_nome']) ?></td>
                             <td><?= htmlspecialchars($agendamento['servico_nome']) ?></td>
                             <td><?= date('H:i', strtotime($agendamento['hora'])) ?></td>
-                            <td><?= $agendamento['duracao'] ?> min</td>
+                            <td><?= $agendamento['servico_duracao'] ?> min</td>
                             <td>
-                                <a href="https://wa.me/55<?= $agendamento['telefone'] ?>" class="btn btn-whatsapp">
-                                    <i class="fab fa-whatsapp"></i> <?= $agendamento['telefone'] ?>
+                                <a href="https://wa.me/55<?= $agendamento['telefone'] ?>" class="btn btn-whatsapp" target="_blank">
+                                    <i class="fab fa-whatsapp"></i> Contato
                                 </a>
                             </td>
                             <td>
@@ -279,10 +312,13 @@ $agendamentos = $stmt->fetchAll();
                                 </form>
                             </td>
                         </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                        <?php 
+                        $cliente_anterior = $agendamento['nome_cliente'];
+                        ?>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
         </div>
     </div>
 

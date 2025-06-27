@@ -974,7 +974,6 @@ session_start(); // Para guardar temporariamente os dados do agendamento
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <!-- Cabeçalho -->
@@ -1180,8 +1179,10 @@ session_start(); // Para guardar temporariamente os dados do agendamento
                         </div>
                         <div class="info-text">
                             <h4>Horário de Funcionamento</h4>
-                            <p>Segunda a Sexta: 09:00 - 19:00</p>
-                            <p>Sábado: 09:00 - 19:00</p>
+                            <p>Segunda: 10:00 - 18:00</p>
+                            <p>Terça a Quinta: 09:00 - 20:00</p>
+                            <p>Sexta: 09:00 - 21:30</p>
+                            <p>Sábado: 08:00 - 17:30</p>
                             <p>Domingo: Fechado</p>
                         </div>
                     </div>
@@ -1441,6 +1442,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Passo 3: Carregar Datas/Horários Disponíveis
     function loadAvailableDates() {
         const dateInput = document.getElementById('appointmentDate');
+        
+        // Definir a data mínima como hoje
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+        const yyyy = today.getFullYear();
+        dateInput.min = `${yyyy}-${mm}-${dd}`;
+        
         dateInput.addEventListener('change', function() {
             if (!this.value) return;
             
@@ -1448,8 +1457,17 @@ document.addEventListener('DOMContentLoaded', function() {
             timeSlots.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Carregando horários...</div>';
             
             fetch(`get_horarios.php?barbeiro_id=${selectedBarber}&data=${this.value}&duracao=${totalDuration}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na rede');
+                    }
+                    return response.json();
+                })
                 .then(horarios => {
+                    if (horarios.error) {
+                        throw new Error(horarios.error);
+                    }
+                    
                     timeSlots.innerHTML = '';
                     
                     if (horarios.length === 0) {
@@ -1499,7 +1517,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 })
                 .catch(error => {
-                    timeSlots.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #721c24;">Ocorreu um erro ao carregar os horários. Por favor, tente novamente.</p>';
+                    timeSlots.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #721c24;">${error.message || 'Ocorreu um erro ao carregar os horários'}</p>`;
                     console.error('Erro ao carregar horários:', error);
                 });
         });
@@ -1522,14 +1540,38 @@ document.addEventListener('DOMContentLoaded', function() {
         return button;
     }
 
+    // Função para formatar data
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        // Ajustar para o fuso horário local
+        const adjustedDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+        
+        const day = String(adjustedDate.getDate()).padStart(2, '0');
+        const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+        const year = adjustedDate.getFullYear();
+        
+        return `${day}/${month}/${year}`;
+    }
+
     // Passo 4: Confirmar Agendamento
     function selectTime(horario) {
-        const data = document.getElementById('appointmentDate').value;
+        const dataInput = document.getElementById('appointmentDate');
+        const dataValue = dataInput.value;
+        
+        // Criar objeto Date ajustado para o fuso horário local
+        const dataObj = new Date(dataValue);
+        const adjustedDate = new Date(dataObj.getTime() + (dataObj.getTimezoneOffset() * 60000));
+        
+        // Formatando a data para YYYY-MM-DD
+        const year = adjustedDate.getFullYear();
+        const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(adjustedDate.getDate()).padStart(2, '0');
+        const dataCorreta = `${year}-${month}-${day}`;
         
         // Preencher formulário oculto
         document.getElementById('confirmBarbeiroId').value = selectedBarber;
         document.getElementById('confirmServicosIds').value = selectedServices.join(',');
-        document.getElementById('confirmData').value = data;
+        document.getElementById('confirmData').value = dataCorreta;
         document.getElementById('confirmHora').value = horario;
         
         // Mostrar resumo
@@ -1550,7 +1592,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="confirmation-item">
                 <span class="confirmation-label">Data:</span>
-                <span class="confirmation-value">${formatDate(data)}</span>
+                <span class="confirmation-value">${formatDate(dataCorreta)}</span>
             </div>
             <div class="confirmation-item">
                 <span class="confirmation-label">Horário:</span>
@@ -1574,12 +1616,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('step4').style.display = 'none';
         document.getElementById('step3').style.display = 'block';
     });
-
-    // Função para formatar data
-    function formatDate(dateString) {
-        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-        return new Date(dateString).toLocaleDateString('pt-BR', options);
-    }
 
     // Abrir modal quando clicar em "Agende seu horário"
     document.getElementById('bookNowHero').addEventListener('click', function(e) {
@@ -1606,6 +1642,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.service-option input[type="checkbox"]').forEach(checkbox => {
             checkbox.checked = false;
         });
+        
+        // Resetar passos
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step3').style.display = 'none';
+        document.getElementById('step4').style.display = 'none';
     });
 
     // Fechar modal
@@ -1630,6 +1672,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 modal.style.display = 'none';
             }, 300);
         }
+    });
+
+    // Menu mobile
+    document.querySelector('.menu-toggle').addEventListener('click', function() {
+        document.querySelector('nav').classList.toggle('active');
     });
 });
 </script>

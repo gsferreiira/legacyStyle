@@ -67,6 +67,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new PDOException('Falha ao inserir no banco de dados');
         }
 
+        // Busca dados completos para o email
+        $stmt = $pdo->prepare("
+            SELECT a.*, b.nome AS barbeiro_nome, 
+            GROUP_CONCAT(s.nome SEPARATOR ', ') AS servicos_nomes
+            FROM agendamentos a
+            JOIN barbeiros b ON a.id_barbeiro = b.id
+            JOIN servicos s ON FIND_IN_SET(s.id, a.id_servico)
+            WHERE a.id = ?
+        ");
+        $stmt->execute([$pdo->lastInsertId()]);
+        $agendamento = $stmt->fetch();
+
+        // Prepara dados para o email
+        $dadosEmail = [
+            'id' => $agendamento['id'],
+            'nome_cliente' => $agendamento['nome_cliente'],
+            'email' => $_POST['email'], // Pega o email do formulário
+            'data' => $agendamento['data'],
+            'hora' => $agendamento['hora'],
+            'barbeiro_nome' => $agendamento['barbeiro_nome'],
+            'servicos' => $agendamento['servicos_nomes']
+        ];
+
+        // Envia o email
+        require 'envia_email.php';
+        enviarEmailConfirmacao($dadosEmail);
+
+        // Redireciona com sucesso
+        header("Location: index.php?agendamento=sucesso");
+        exit;
+
         // Redirecionar com mensagem de sucesso
         header("Location: index.php?agendamento=sucesso");
         exit;

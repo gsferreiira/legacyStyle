@@ -8,7 +8,7 @@ session_start(); // Para guardar temporariamente os dados do agendamento
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legacy Style - Barbearia Premium</title>
-    <link rel="shortcut icon" href="assets/logo.png" type="image/x-icon">
+    <link rel="shortcut icon" href="assets/LOGO LEGACY SF/1.png" type="image/x-icon">
     <style>
         /* Estilos Globais */
         * {
@@ -785,7 +785,102 @@ session_start(); // Para guardar temporariamente os dados do agendamento
         .barber-option .fa-chevron-right {
             transition: transform 0.3s ease;
         }
+        
+        /* Estilos do Carrossel */
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
 
+        .carousel-slides {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            height: 400px;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .carousel-prev, .carousel-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(212, 175, 55, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .carousel-prev:hover, .carousel-next:hover {
+            background-color: rgba(212, 175, 55, 0.9);
+        }
+
+        .carousel-prev {
+            left: 15px;
+        }
+
+        .carousel-next {
+            right: 15px;
+        }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .carousel-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .carousel-dot.active {
+            background-color: #d4af37;
+            transform: scale(1.2);
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .carousel-slides {
+                height: 300px;
+            }
+            
+            .carousel-prev, .carousel-next {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+        }
         /* Responsividade para mobile */
         @media (max-width: 576px) {
             .barber-option {
@@ -981,7 +1076,7 @@ session_start(); // Para guardar temporariamente os dados do agendamento
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <a href="login.php"><img src="assets/logo.png" alt="Logo Legacy Style" style="height: 60px; vertical-align: middle;"></a>
+                    <a href="login.php"><img src="assets/LOGO LEGACY SF/2.png" alt="Logo Legacy Style" style="height: 60px; vertical-align: middle;"></a>
                 </div>
                 <div class="logo">LEGACY <span>STYLE</span></div>
                 <div class="menu-toggle">
@@ -1019,7 +1114,25 @@ session_start(); // Para guardar temporariamente os dados do agendamento
             </div>
             <div class="about-content">
                 <div class="about-img">
-                    <img src="assets/logo.png" alt="Interior da barbearia">
+                    <div class="carousel-container">
+                        <div class="carousel-slides">
+                            <div class="carousel-slide active">
+                                <img src="assets/interior1.jpg" alt="Interior da barbearia">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="assets/interior2.jpg" alt="Equipe da barbearia">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="assets/interior3.jpg" alt="Cliente sendo atendido">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="assets/interior4.jpg" alt="Detalhes do ambiente">
+                            </div>
+                        </div>
+                        <button class="carousel-prev"><i class="fas fa-chevron-left"></i></button>
+                        <button class="carousel-next"><i class="fas fa-chevron-right"></i></button>
+                        <div class="carousel-dots"></div>
+                    </div>
                 </div>
                 <div class="about-text">
                     <h3>Nossa História</h3>
@@ -1051,6 +1164,7 @@ session_start(); // Para guardar temporariamente os dados do agendamento
                             <a href="https://www.instagram.com/silva__barbeer/?hl=en"><i class="fab fa-instagram"></i></a>
                             <a href="#"><i class="fab fa-facebook"></i></a>
                         </div>
+                        <a href="caua.php" class="btn" style="margin-top: 15px; display: inline-block;">Ver Perfil</a>
                     </div>
                 </div>
                 <div class="barber-card">
@@ -1066,6 +1180,7 @@ session_start(); // Para guardar temporariamente os dados do agendamento
                             <a href="https://www.instagram.com/ovitinhobarber/?hl=en"><i class="fab fa-instagram"></i></a>
                             <a href="#"><i class="fab fa-facebook"></i></a>
                         </div>
+                        <a href="vitinho.php" class="btn" style="margin-top: 15px; display: inline-block;">Ver Perfil</a>
                     </div>
                 </div>
             </div>
@@ -1345,6 +1460,7 @@ session_start(); // Para guardar temporariamente os dados do agendamento
                     
                     <input type="text" name="nome" placeholder="Seu Nome Completo" required>
                     <input type="tel" name="telefone" placeholder="Seu WhatsApp (ex: 41999999999)" required>
+                    <input type="email" name="email" placeholder="Seu E-mail" required>
                     
                     <div class="confirmation-actions">
                         <button type="button" class="btn btn-cancel" id="backToStep3">Voltar</button>
@@ -1678,6 +1794,62 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.menu-toggle').addEventListener('click', function() {
         document.querySelector('nav').classList.toggle('active');
     });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const slides = document.querySelectorAll('.carousel-slide');
+    const dotsContainer = document.querySelector('.carousel-dots');
+    const prevBtn = document.querySelector('.carousel-prev');
+    const nextBtn = document.querySelector('.carousel-next');
+    let currentIndex = 0;
+    
+    // Criar dots
+    slides.forEach((_, index) => {
+        const dot = document.createElement('div');
+        dot.classList.add('carousel-dot');
+        if (index === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => goToSlide(index));
+        dotsContainer.appendChild(dot);
+    });
+    
+    // Atualizar carrossel
+    function updateCarousel() {
+        const slideWidth = document.querySelector('.carousel-slide').clientWidth;
+        document.querySelector('.carousel-slides').style.transform = `translateX(-${currentIndex * slideWidth}px)`;
+        
+        // Atualizar dots
+        document.querySelectorAll('.carousel-dot').forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentIndex);
+        });
+    }
+    
+    // Navegação
+    function goToSlide(index) {
+        currentIndex = index;
+        updateCarousel();
+    }
+    
+    function nextSlide() {
+        currentIndex = (currentIndex + 1) % slides.length;
+        updateCarousel();
+    }
+    
+    function prevSlide() {
+        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        updateCarousel();
+    }
+    
+    // Event listeners
+    nextBtn.addEventListener('click', nextSlide);
+    prevBtn.addEventListener('click', prevSlide);
+    
+    // Auto-avanço (opcional)
+    let interval = setInterval(nextSlide, 5000);
+    
+    // Pausar ao passar o mouse
+    const carousel = document.querySelector('.carousel-container');
+    carousel.addEventListener('mouseenter', () => clearInterval(interval));
+    carousel.addEventListener('mouseleave', () => interval = setInterval(nextSlide, 5000));
 });
 </script>
 </body>

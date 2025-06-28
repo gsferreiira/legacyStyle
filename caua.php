@@ -51,11 +51,19 @@ require 'db_connection.php';
             display: flex;
             justify-content: space-between;
             align-items: center;
+            
         }
         
         .logo {
             font-size: 24px;
             font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            gap: 5px;
+        }
+
+        header .logo {
+            margin: 0;
             color: var(--secondary);
         }
         
@@ -449,7 +457,7 @@ require 'db_connection.php';
             <div class="header-content">
                 <a href="index.php" class="logo">
                     <img src="assets/LOGO LEGACY SF/2.png" alt="Legacy Style">
-                    <span>LEGACY STYLE</span>
+                    <p>LEGACY</p><span><p>STYLE</p></span>
                 </a>
                 <a href="index.php" class="back-btn">
                     <i class="fas fa-arrow-left"></i> Voltar

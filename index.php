@@ -434,9 +434,11 @@ session_start(); // Para guardar temporariamente os dados do agendamento
             color: #1a1a1a;
         }
         
-        .info-text p {
+        .info-text p, a {
             font-size: 15px;
             line-height: 1.5;
+            text-decoration: none;
+            color: #333;
         }
         
         .contact-form input,

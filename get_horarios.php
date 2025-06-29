@@ -23,6 +23,17 @@ if (!strtotime($data)) {
     exit;
 }
 
+// Adicione isso após a validação da data (por volta da linha 30)
+$dataSelecionada = new DateTime($data);
+$dataAtual = new DateTime();
+$dataLimite = (new DateTime())->modify('+7 days');
+
+if ($dataSelecionada > $dataLimite) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Agendamentos permitidos apenas para os próximos 7 dias']);
+    exit;
+}
+
 try {
     // Horário de funcionamento
     $dia_semana = date('N', strtotime($data)); // 1=segunda, 2=terça, etc.

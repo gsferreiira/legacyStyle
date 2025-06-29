@@ -25,6 +25,41 @@ session_start(); // Para guardar temporariamente os dados do agendamento
             color: #333;
             overflow-x: hidden;
         }
+
+        .alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 25px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            z-index: 3000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s, fadeOut 0.5s 3s forwards;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background-color: #28a745;
+        }
+
+        .alert-error {
+            background-color: #dc3545;
+        }
+
+        @keyframes slideIn {
+            from { top: -100px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
         
         /* Cabeçalho */
         header {
@@ -1474,7 +1509,7 @@ session_start(); // Para guardar temporariamente os dados do agendamento
     </div>
 
     <script>
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
     // Variáveis globais
     let selectedBarber;
     let selectedServices = [];
@@ -1577,7 +1612,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`get_horarios.php?barbeiro_id=${selectedBarber}&data=${this.value}&duracao=${totalDuration}`)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Erro na rede');
+                        throw new Error('O dia escolhido não possui horários disponíveis ou ocorreu um erro ao buscar os horários.');
                     }
                     return response.json();
                 })
@@ -1639,6 +1674,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error('Erro ao carregar horários:', error);
                 });
         });
+    }
+
+    // Verificar parâmetros da URL para mostrar mensagens
+    const urlParams = new URLSearchParams(window.location.search);
+    const agendamentoStatus = urlParams.get('agendamento');
+    const mensagem = urlParams.get('mensagem');
+
+    if (agendamentoStatus === 'sucesso') {
+        showAlert('Agendamento realizado com sucesso!', 'success');
+    } else if (agendamentoStatus === 'erro') {
+        showAlert(mensagem || 'Não foi possível realizar o agendamento', 'error');
     }
 
     // Função auxiliar para criar um slot de horário
@@ -1853,6 +1899,22 @@ document.addEventListener('DOMContentLoaded', function() {
     carousel.addEventListener('mouseenter', () => clearInterval(interval));
     carousel.addEventListener('mouseleave', () => interval = setInterval(nextSlide, 5000));
 });
+
+// Função para mostrar alerta
+function showAlert(message, type) {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type}`;
+    alert.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        ${message}
+    `;
+    document.body.appendChild(alert);
+    
+    // Remover após alguns segundos
+    setTimeout(() => {
+        alert.remove();
+    }, 3500);
+}
 </script>
 </body>
 </html>

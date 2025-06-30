@@ -182,4 +182,41 @@ function calcularTotalServicos($servicos_ids, $pdo) {
 
 header("Location: index.php");
 exit;
+
+// Receber dados do formulário
+$barbeiro_id = $_POST['barbeiro_id'];
+$servicos = $_POST['servicos'];
+$data = $_POST['data'];
+$hora = $_POST['hora'];
+$nome = $_POST['nome'];
+$telefone = $_POST['telefone'];
+$email = $_POST['email'];
+$metodo_pagamento = $_POST['payment_method'];
+$valor_final = $_POST['valor_total'];
+
+// Calcular valor final com base no método de pagamento
+if ($metodo_pagamento === 'pix') {
+    // Já vem com desconto aplicado pelo JavaScript
+} else {
+    // Valor normal (sem desconto)
+}
+
+// Inserir no banco de dados
+try {
+    $stmt = $pdo->prepare("INSERT INTO agendamentos 
+                          (barbeiro_id, servicos_ids, data, hora, nome_cliente, telefone, email, metodo_pagamento, valor_final, status) 
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendente')");
+    $stmt->execute([$barbeiro_id, $servicos, $data, $hora, $nome, $telefone, $email, $metodo_pagamento, $valor_final]);
+    
+    // Se for PIX, redirecionar com mensagem específica
+    if ($metodo_pagamento === 'pix') {
+        header("Location: index.php?agendamento=sucesso&mensagem=Agendamento realizado! Por favor, efetue o pagamento via PIX para confirmar.");
+    } else {
+        header("Location: index.php?agendamento=sucesso");
+    }
+    exit();
+} catch (PDOException $e) {
+    header("Location: index.php?agendamento=erro&mensagem=" . urlencode("Erro ao agendar: " . $e->getMessage()));
+    exit();
+}
 ?>

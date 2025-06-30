@@ -906,6 +906,41 @@ session_start(); // Para guardar temporariamente os dados do agendamento
             transform: scale(1.2);
         }
 
+        .payment-options {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .payment-options h4 {
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .payment-options label {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background-color: #fff;
+            border: 1px solid #eee;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .payment-options label:hover {
+            border-color: #d4af37;
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+
+        .payment-options input[type="radio"] {
+            margin-right: 10px;
+            accent-color: #d4af37;
+        }
+
         /* Responsividade */
         @media (max-width: 768px) {
             .carousel-slides {
@@ -1490,20 +1525,45 @@ session_start(); // Para guardar temporariamente os dados do agendamento
                 </div>
                 
                 <form method="POST" action="salvar_agendamento.php" class="client-form">
-                    <input type="hidden" name="barbeiro_id" id="confirmBarbeiroId">
-                    <input type="hidden" name="servicos" id="confirmServicosIds">
-                    <input type="hidden" name="data" id="confirmData">
-                    <input type="hidden" name="hora" id="confirmHora">
-                    
-                    <input type="text" name="nome" placeholder="Seu Nome Completo" required>
-                    <input type="tel" name="telefone" placeholder="Seu WhatsApp (ex: 41999999999)" required>
-                    <input type="email" name="email" placeholder="Seu E-mail" required>
-                    
-                    <div class="confirmation-actions">
-                        <button type="button" class="btn btn-cancel" id="backToStep3">Voltar</button>
-                        <button type="submit" class="btn">Confirmar Agendamento</button>
+                <input type="hidden" name="barbeiro_id" id="confirmBarbeiroId">
+                <input type="hidden" name="servicos" id="confirmServicosIds">
+                <input type="hidden" name="data" id="confirmData">
+                <input type="hidden" name="hora" id="confirmHora">
+                <input type="hidden" name="valor_total" id="valorTotal">
+                
+                <!-- Campos do cliente -->
+                <input type="text" name="nome" placeholder="Seu Nome Completo" required>
+                <input type="tel" name="telefone" placeholder="Seu WhatsApp (ex: 41999999999)" required>
+                <input type="email" name="email" placeholder="Seu E-mail" required>
+                
+                <!-- Adicione antes dos botões de ação -->
+                <div id="pixInfo" style="display: none; margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                    <h4 style="margin-bottom: 10px; color: #d4af37;">Pagamento via PIX</h4>
+                    <p>Chave PIX: <strong>legacystyle@gmail.com</strong></p>
+                    <p>Valor: <strong id="pixAmount">R$ 0,00</strong></p>
+                    <p>Após o pagamento, envie o comprovante para nosso WhatsApp.</p>
+                    <img src="assets/qrcode_pix.png" alt="QR Code PIX" style="max-width: 200px; margin: 10px auto; display: block;">
+                </div>
+                
+                <div class="confirmation-actions">
+                    <button type="button" class="btn btn-cancel" id="backToStep3">Voltar</button>
+                    <button type="submit" class="btn">Confirmar Agendamento</button>
+                </div>
+            </form>
+                <!-- No passo 4 de confirmação -->
+                <div class="payment-options" style="margin: 20px 0;">
+                    <h4 style="margin-bottom: 10px; color: #555;">Forma de Pagamento</h4>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="payment_method" value="presencial" checked style="accent-color: #d4af37;">
+                            Pagar na barbearia
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="payment_method" value="pix" style="accent-color: #d4af37;">
+                            Pagar com PIX (5% de desconto)
+                        </label>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -1774,6 +1834,36 @@ session_start(); // Para guardar temporariamente os dados do agendamento
         document.getElementById('step3').style.display = 'none';
         document.getElementById('step4').style.display = 'block';
     }
+
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'pix') {
+                const discountedPrice = totalPrice * 0.95; // 5% de desconto
+                document.querySelector('.confirmation-total span').innerHTML = 
+                    `Valor Total: <span style="text-decoration: line-through;">R$ ${totalPrice.toFixed(2).replace('.', ',')}</span> 
+                    R$ ${discountedPrice.toFixed(2).replace('.', ',')} (com 5% de desconto PIX)`;
+            } else {
+                document.querySelector('.confirmation-total span').innerHTML = 
+                    `Valor Total: R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+            }
+        });
+    });
+
+    // Mostrar/Esconder informações PIX conforme seleção
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const pixInfo = document.getElementById('pixInfo');
+            if (this.value === 'pix') {
+                pixInfo.style.display = 'block';
+                const discountedPrice = totalPrice * 0.95;
+                document.getElementById('pixAmount').textContent = `R$ ${discountedPrice.toFixed(2).replace('.', ',')}`;
+                document.getElementById('valorTotal').value = discountedPrice;
+            } else {
+                pixInfo.style.display = 'none';
+                document.getElementById('valorTotal').value = totalPrice;
+            }
+        });
+    });
 
     // Botão de voltar
     document.getElementById('backToStep3').addEventListener('click', function() {

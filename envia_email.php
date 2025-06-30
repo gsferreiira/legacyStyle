@@ -22,7 +22,25 @@ function enviarEmailConfirmacao($dadosAgendamento) {
     $linkCancelamento = "https://sua-barbearia.com/cancelar_agendamento.php?id=$idAgendamento&token=$token";
     
     // Corpo do e-mail em HTML
-    $assunto = "Confirmação de Agendamento - Legacy Style";
+    
+$status_pagamento = $_POST['status_pagamento'] ?? 'pendente';
+$assunto = "Confirmação do seu agendamento na Legacy Style";
+$mensagem = "";
+
+if ($status_pagamento === "pago") {
+    $mensagem = "
+    <h2>✅ Pagamento Confirmado!</h2>
+    <p>Olá {$nome_cliente}, seu horário foi agendado com sucesso e o pagamento via PIX foi confirmado.</p>
+    <p>Nos vemos em breve na <strong>Legacy Style</strong>!</p>
+    ";
+} else {
+    $mensagem = "
+    <h2>🕓 Agendamento Confirmado</h2>
+    <p>Olá {$nome_cliente}, seu horário foi agendado com sucesso.</p>
+    <p>Assim que o pagamento for confirmado, você receberá um novo aviso.</p>
+    ";
+}
+
     
     $mensagem = "
     <html>

@@ -1156,12 +1156,21 @@ session_start(); // Para guardar temporariamente os dados do agendamento
                 </div>
                 <nav>
                     <ul>
-                        <li><a href="#home">Início</a></li>
-                        <li><a href="#about">Sobre</a></li>
-                        <li><a href="#barbers">Barbeiros</a></li>
-                        <li><a href="#services">Serviços</a></li>
-                        <li><a href="#contact">Contato</a></li>
-                    </ul>
+                    <li><a href="#home">Início</a></li>
+                    <li><a href="#about">Sobre</a></li>
+                    <li><a href="#barbers">Barbeiros</a></li>
+                    <li><a href="#services">Serviços</a></li>
+                    
+                    <?php if (isset($_SESSION['cliente_id'])): ?>
+                        <li><a href="meus_agendamentos.php" style="color: #d4af37; font-weight: bold;">
+                            <i class="fas fa-user-circle"></i> Olá, <?= explode(' ', $_SESSION['cliente_nome'])[0] ?>
+                        </a></li>
+                    <?php else: ?>
+                        <li><a href="entrar.php" style="color: #d4af37; font-weight: bold;">
+                            <i class="fas fa-sign-in-alt"></i> Entrar / Cadastrar
+                        </a></li>
+                    <?php endif; ?>
+                </ul>
                 </nav>
             </div>
         </div>

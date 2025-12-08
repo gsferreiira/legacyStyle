@@ -1,222 +1,175 @@
 <?php
 require 'db_connection.php';
+require 'envia_email.php';
 
-// Definir o fuso horário para o do Brasil (São Paulo)
+// ATENÇÃO: Configure a URL base do seu site aqui para o Webhook funcionar
+// Em produção mude para https://seusite.com.br
+define('BASE_URL', 'https://seusite.com.br'); 
+
 date_default_timezone_set('America/Sao_Paulo');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validar e sanitizar os dados
+    // 1. Receber e Validar Dados
     $barbeiro_id = filter_input(INPUT_POST, 'barbeiro_id', FILTER_VALIDATE_INT);
-    $servicos = filter_input(INPUT_POST, 'servicos', FILTER_SANITIZE_STRING);
+    $servicos_ids = filter_input(INPUT_POST, 'servicos', FILTER_SANITIZE_STRING);
     $data = filter_input(INPUT_POST, 'data', FILTER_SANITIZE_STRING);
     $hora = filter_input(INPUT_POST, 'hora', FILTER_SANITIZE_STRING);
     $nome_cliente = filter_input(INPUT_POST, 'nome', FILTER_SANITIZE_STRING);
     $telefone = filter_input(INPUT_POST, 'telefone', FILTER_SANITIZE_STRING);
     $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+    $metodo_pagamento = filter_input(INPUT_POST, 'payment_method', FILTER_SANITIZE_STRING) ?? 'presencial';
+    $valor_final = filter_input(INPUT_POST, 'valor_total', FILTER_VALIDATE_FLOAT);
 
-    // Verificar se todos os campos estão preenchidos e válidos
     $erros = [];
-    
-    if (!$barbeiro_id || $barbeiro_id < 1) {
-        $erros[] = "Barbeiro inválido";
-    }
-    
-    if (!$servicos || !preg_match('/^\d+(,\d+)*$/', $servicos)) {
-        $erros[] = "Serviços inválidos";
-    }
-    
-    if (!$data) {
-        $erros[] = "Data inválida";
-    }
-    
-    if (!$hora || !preg_match('/^\d{2}:\d{2}$/', $hora)) {
-        $erros[] = "Horário inválido";
-    }
-    
-    if (!$nome_cliente || strlen($nome_cliente) < 3) {
-        $erros[] = "Nome deve ter pelo menos 3 caracteres";
-    }
-    
-    if (!$telefone || !preg_match('/^\d{10,15}$/', $telefone)) {
-        $erros[] = "Telefone inválido";
-    }
-    
-    if (!$email) {
-        $erros[] = "E-mail inválido";
-    }
+    if (!$barbeiro_id) $erros[] = "Barbeiro inválido.";
+    if (!$servicos_ids) $erros[] = "Nenhum serviço selecionado.";
+    if (!$data || !$hora) $erros[] = "Data ou hora inválida.";
+    if (!$nome_cliente || !$telefone || !$email) $erros[] = "Preencha os dados de contato.";
 
     if (!empty($erros)) {
-        header("Location: index.php?agendamento=erro&mensagem=" . urlencode(implode(" | ", $erros)));
-        exit;
-    }
-
-    // Verificar se a data é válida e está dentro do limite de 7 dias
-    $dataObj = DateTime::createFromFormat('Y-m-d', $data);
-    $dataAtual = new DateTime();
-    $dataLimite = (new DateTime())->modify('+7 days');
-
-    if (!$dataObj || $dataObj < $dataAtual || $dataObj > $dataLimite) {
-        header("Location: index.php?agendamento=erro&mensagem=Data inválida ou fora do limite de 7 dias para agendamento");
+        header("Location: index.php?agendamento=erro&mensagem=" . urlencode(implode(", ", $erros)));
         exit;
     }
 
     try {
-        // Iniciar transação para garantir consistência
         $pdo->beginTransaction();
 
-        // Calcular duração total e verificar serviços
-        $servicos_selecionados = explode(',', $servicos);
-        $duracao_total = 0;
-        $servicos_validos = [];
+        // 2. Verificar disponibilidade
+        $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM agendamentos WHERE id_barbeiro = ? AND data = ? AND hora = ?");
+        $stmtCheck->execute([$barbeiro_id, $data, $hora]);
+        if ($stmtCheck->fetchColumn() > 0) {
+            throw new Exception("Horário já reservado.");
+        }
+
+        // 3. Buscar Token do Barbeiro e calcular tempo
+        // Buscamos o nome e o TOKEN do barbeiro específico
+        $stmtBarbeiro = $pdo->prepare("SELECT nome, mp_access_token FROM barbeiros WHERE id = ?");
+        $stmtBarbeiro->execute([$barbeiro_id]);
+        $barbeiro_dados = $stmtBarbeiro->fetch();
+
+        if (!$barbeiro_dados) throw new Exception("Barbeiro não encontrado.");
         
-        foreach ($servicos_selecionados as $servico_id) {
-            if (!is_numeric($servico_id)) continue;
+        $barbeiro_nome = $barbeiro_dados['nome'];
+        $access_token = $barbeiro_dados['mp_access_token'];
+
+        // Calcular serviços
+        $ids_array = explode(',', $servicos_ids);
+        $placeholders = implode(',', array_fill(0, count($ids_array), '?'));
+        $stmtServicos = $pdo->prepare("SELECT duracao, nome FROM servicos WHERE id IN ($placeholders)");
+        $stmtServicos->execute($ids_array);
+        $dados_servicos = $stmtServicos->fetchAll(PDO::FETCH_ASSOC);
+
+        $duracao_total = 0;
+        $nomes_servicos = [];
+        foreach ($dados_servicos as $s) {
+            $duracao_total += $s['duracao'];
+            $nomes_servicos[] = $s['nome'];
+        }
+        $lista_servicos_texto = implode(", ", $nomes_servicos);
+
+        // --- INTEGRAÇÃO DINÂMICA MERCADO PAGO ---
+        $mp_id = null;
+        $qr_code_base64 = null;
+        $qr_code_copia_cola = null;
+        $status_inicial = 'pendente';
+
+        if ($metodo_pagamento === 'pix') {
             
-            $stmt = $pdo->prepare("SELECT id, duracao, nome FROM servicos WHERE id = ?");
-            $stmt->execute([$servico_id]);
-            $servico = $stmt->fetch();
-            
-            if ($servico) {
-                $duracao_total += $servico['duracao'];
-                $servicos_validos[] = $servico['nome'];
+            if (empty($access_token)) {
+                throw new Exception("Erro: O barbeiro $barbeiro_nome não configurou o Mercado Pago.");
+            }
+
+            // O segredo está aqui: Passamos o ID do barbeiro na URL de notificação
+            // Assim, quando o MP avisar, saberemos de quem é a conta.
+            $webhook_url = BASE_URL . "/notificacao.php?barbeiro_id=" . $barbeiro_id;
+
+            $dados_mp = [
+                "transaction_amount" => (float)$valor_final,
+                "description" => "Corte com $barbeiro_nome - Legacy Style",
+                "payment_method_id" => "pix",
+                "payer" => [
+                    "email" => $email,
+                    "first_name" => explode(' ', $nome_cliente)[0],
+                    "last_name" => explode(' ', $nome_cliente)[1] ?? 'Cliente',
+                    "identification" => ["type" => "CPF", "number" => "19119119100"]
+                ],
+                "notification_url" => $webhook_url
+            ];
+
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL => 'https://api.mercadopago.com/v1/payments',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => json_encode($dados_mp),
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ' . $access_token, // Usa o token do barbeiro específico!
+                    'X-Idempotency-Key: ' . uniqid()
+                ],
+            ]);
+
+            $response = curl_exec($curl);
+            $err = curl_error($curl);
+            curl_close($curl);
+
+            if ($err) throw new Exception("Erro MP: " . $err);
+
+            $mp_resposta = json_decode($response, true);
+
+            if (isset($mp_resposta['id'])) {
+                $mp_id = $mp_resposta['id'];
+                $status_inicial = $mp_resposta['status'];
+                $qr_code_base64 = $mp_resposta['point_of_interaction']['transaction_data']['qr_code_base64'];
+                $qr_code_copia_cola = $mp_resposta['point_of_interaction']['transaction_data']['qr_code'];
+            } else {
+                $erro_msg = $mp_resposta['message'] ?? 'Erro desconhecido ao gerar PIX';
+                throw new Exception("Falha MP: " . $erro_msg);
             }
         }
+        // -------------------------------
 
-        // Verificar se há serviços válidos
-        if ($duracao_total <= 0 || empty($servicos_validos)) {
-            $pdo->rollBack();
-            header("Location: index.php?agendamento=erro&mensagem=Nenhum serviço válido selecionado");
-            exit;
-        }
-
-        // Verificar se o horário ainda está disponível
-        $stmt = $pdo->prepare("
-            SELECT COUNT(*) FROM agendamentos 
-            WHERE id_barbeiro = ? AND data = ? AND hora = ?
-        ");
-        $stmt->execute([$barbeiro_id, $data, $hora]);
+        // 4. Salvar no Banco
+        $sql = "INSERT INTO agendamentos 
+                (id_barbeiro, servicos_ids, nome_cliente, telefone, email, data, hora, duracao, valor_final, metodo_pagamento, status, mp_id, mp_status, qr_code_base64, qr_code_copia_cola) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
-        if ($stmt->fetchColumn() > 0) {
-            $pdo->rollBack();
-            header("Location: index.php?agendamento=erro&mensagem=Horário já ocupado");
-            exit;
-        }
-
-        // Salvar no banco
-        $stmt = $pdo->prepare("INSERT INTO agendamentos 
-            (id_barbeiro, id_servico, nome_cliente, telefone, email, data, hora, duracao) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        
-        $success = $stmt->execute([
-            $barbeiro_id,
-            $servicos,
-            $nome_cliente,
-            $telefone,
-            $email,
-            $data,
-            $hora,
-            $duracao_total
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            $barbeiro_id, $servicos_ids, $nome_cliente, $telefone, $email, $data, $hora, 
+            $duracao_total, $valor_final, $metodo_pagamento, $status_inicial, 
+            $mp_id, $status_inicial, $qr_code_base64, $qr_code_copia_cola
         ]);
 
-        if (!$success) {
-            throw new PDOException('Falha ao inserir no banco de dados');
-        }
+        $id_agendamento = $pdo->lastInsertId();
 
-        $agendamento_id = $pdo->lastInsertId();
-
-        // Busca dados completos para o email
-        $stmt = $pdo->prepare("
-            SELECT a.*, b.nome AS barbeiro_nome, b.foto AS barbeiro_foto
-            FROM agendamentos a
-            JOIN barbeiros b ON a.id_barbeiro = b.id
-            WHERE a.id = ?
-        ");
-        $stmt->execute([$agendamento_id]);
-        $agendamento = $stmt->fetch();
-
-        // Prepara dados para o email
+        // 5. Enviar Email
         $dadosEmail = [
-            'id' => $agendamento_id,
+            'id' => $id_agendamento,
             'nome_cliente' => $nome_cliente,
             'email' => $email,
             'data' => $data,
             'hora' => $hora,
-            'barbeiro_nome' => $agendamento['barbeiro_nome'],
-            'barbeiro_foto' => $agendamento['barbeiro_foto'],
-            'servicos' => implode(", ", $servicos_validos),
-            'duracao' => $duracao_total,
-            'total' => calcularTotalServicos($servicos_selecionados, $pdo)
+            'barbeiro_nome' => $barbeiro_nome,
+            'servicos' => $lista_servicos_texto,
+            'status_pagamento' => ($metodo_pagamento === 'pix') ? 'Aguardando Pagamento' : 'Pagar no Local'
         ];
 
-        // Envia o email
-        require 'envia_email.php';
-        enviarEmailConfirmacao($dadosEmail);
+        try { enviarEmailConfirmacao($dadosEmail); } catch (Exception $e) {}
 
-        // Commit da transação
         $pdo->commit();
 
-        // Redirecionar com mensagem de sucesso
-        header("Location: index.php?agendamento=sucesso");
-        exit;
-
-    } catch (PDOException $e) {
-        if (isset($pdo) && $pdo->inTransaction()) {
-            $pdo->rollBack();
+        if ($metodo_pagamento === 'pix') {
+            header("Location: pagamento_pix.php?id=" . $id_agendamento);
+        } else {
+            header("Location: index.php?agendamento=sucesso&mensagem=" . urlencode("Agendamento confirmado!"));
         }
-        error_log('Erro ao salvar agendamento: ' . $e->getMessage());
-        header("Location: index.php?agendamento=erro&mensagem=Erro ao processar agendamento. Tente novamente.");
+        exit;
+
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        header("Location: index.php?agendamento=erro&mensagem=" . urlencode("Erro: " . $e->getMessage()));
         exit;
     }
-}
-
-// Função auxiliar para calcular o total dos serviços
-function calcularTotalServicos($servicos_ids, $pdo) {
-    $total = 0;
-    $placeholders = implode(',', array_fill(0, count($servicos_ids), '?'));
-    
-    $stmt = $pdo->prepare("SELECT SUM(preco) FROM servicos WHERE id IN ($placeholders)");
-    $stmt->execute($servicos_ids);
-    
-    return $stmt->fetchColumn();
-}
-
-header("Location: index.php");
-exit;
-
-// Receber dados do formulário
-$barbeiro_id = $_POST['barbeiro_id'];
-$servicos = $_POST['servicos'];
-$data = $_POST['data'];
-$hora = $_POST['hora'];
-$nome = $_POST['nome'];
-$telefone = $_POST['telefone'];
-$email = $_POST['email'];
-$metodo_pagamento = $_POST['payment_method'];
-$valor_final = $_POST['valor_total'];
-
-// Calcular valor final com base no método de pagamento
-if ($metodo_pagamento === 'pix') {
-    // Já vem com desconto aplicado pelo JavaScript
-} else {
-    // Valor normal (sem desconto)
-}
-
-// Inserir no banco de dados
-try {
-    $stmt = $pdo->prepare("INSERT INTO agendamentos 
-                          (barbeiro_id, servicos_ids, data, hora, nome_cliente, telefone, email, metodo_pagamento, valor_final, status) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendente')");
-    $stmt->execute([$barbeiro_id, $servicos, $data, $hora, $nome, $telefone, $email, $metodo_pagamento, $valor_final]);
-    
-    // Se for PIX, redirecionar com mensagem específica
-    if ($metodo_pagamento === 'pix') {
-        header("Location: index.php?agendamento=sucesso&mensagem=Agendamento realizado! Por favor, efetue o pagamento via PIX para confirmar.");
-    } else {
-        header("Location: index.php?agendamento=sucesso");
-    }
-    exit();
-} catch (PDOException $e) {
-    header("Location: index.php?agendamento=erro&mensagem=" . urlencode("Erro ao agendar: " . $e->getMessage()));
-    exit();
 }
 ?>

@@ -4,7 +4,7 @@ require 'envia_email.php';
 
 // ATENÇÃO: Configure a URL base do seu site aqui para o Webhook funcionar
 // Em produção mude para https://seusite.com.br
-define('BASE_URL', 'https://seusite.com.br'); 
+define('BASE_URL', 'https://legacystyle.com.br'); 
 
 date_default_timezone_set('America/Sao_Paulo');
 

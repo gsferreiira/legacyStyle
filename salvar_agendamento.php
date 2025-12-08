@@ -3,16 +3,20 @@ session_start();
 require 'db_connection.php';
 require 'envia_email.php';
 
-// Detecta a URL base do seu site automaticamente
+// --- CORREÇÃO DE URL (FIX PARA WINDOWS/XAMPP) ---
 $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-$base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
+$host = $_SERVER['HTTP_HOST'];
+// Remove barras invertidas e espaços extras
+$path = rtrim(str_replace('\\', '/', dirname($_SERVER['PHP_SELF'])), '/');
+$base_url = $protocol . "://" . $host . $path;
 
-// URLs para onde o Mercado Pago vai mandar o cliente depois de pagar
-// Nota: Em localhost, o MP avisa que voltou, mas a notificação de status (webhook) precisa de site online.
-define('URL_SUCESSO', $base_url . '/index.php?agendamento=sucesso&mensagem=Pagamento realizado!');
-define('URL_FALHA', $base_url . '/index.php?agendamento=erro&mensagem=Pagamento falhou.');
-define('URL_PENDENTE', $base_url . '/index.php?agendamento=sucesso&mensagem=Pagamento em análise.');
-define('URL_NOTIFICACAO', 'https://legacystyle.com.br/notificacao.php'); // MUDE ISSO QUANDO SUBIR PRA HOSTINGER
+// URLs Limpas (Sem espaços ou caracteres estranhos)
+define('URL_SUCESSO', $base_url . '/index.php?agendamento=sucesso');
+define('URL_FALHA', $base_url . '/index.php?agendamento=erro');
+define('URL_PENDENTE', $base_url . '/index.php?agendamento=sucesso');
+
+// Webhook (Na Hostinger, mude para o domínio real)
+define('URL_NOTIFICACAO', 'https://legacystyle.com.br/notificacao.php'); 
 
 date_default_timezone_set('America/Sao_Paulo');
 
@@ -28,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $metodo_pagamento = filter_input(INPUT_POST, 'payment_method', FILTER_SANITIZE_STRING) ?? 'presencial';
     $valor_final = filter_input(INPUT_POST, 'valor_total', FILTER_VALIDATE_FLOAT);
     
-    // Captura o ID do cliente logado (se houver)
     $id_cliente = isset($_SESSION['cliente_id']) ? $_SESSION['cliente_id'] : null;
 
     if (!$barbeiro_id || !$servicos_ids || !$data || !$hora || !$email) {
@@ -63,9 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $lista_servicos_texto = implode(", ", $nomes_servicos);
 
-        // --- INTEGRAÇÃO MERCADO PAGO (CHECKOUT PRO / REDIRECIONAMENTO) ---
+        // --- INTEGRAÇÃO MERCADO PAGO ---
         $link_pagamento = null;
-        $mp_id = null; // ID da preferência
+        $mp_id = null; 
         $status_inicial = 'pendente';
 
         if ($metodo_pagamento === 'pix') {
@@ -73,45 +76,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 die("Erro: Barbeiro sem token MP configurado.");
             }
 
-            // Configura a URL de notificação com o ID do barbeiro
             $webhook_url = URL_NOTIFICACAO . "?barbeiro_id=" . $barbeiro_id;
 
-            // Monta os dados da PREFERÊNCIA (Checkout Pro)
             $dados_mp = [
                 "items" => [
                     [
                         "id" => "legacy_srv",
-                        "title" => "Legacy Style - " . $lista_servicos_texto,
-                        "description" => "Agendamento com " . $barbeiro_nome,
+                        "title" => "Legacy Style - Servicos",
+                        "description" => "Agendamento Barbearia",
                         "quantity" => 1,
                         "currency_id" => "BRL",
                         "unit_price" => (float)$valor_final
                     ]
                 ],
                 "payer" => [
-                    "name" => explode(' ', $nome_cliente)[0],
-                    "surname" => explode(' ', $nome_cliente)[1] ?? 'Cliente',
                     "email" => $email,
-                    "phone" => [
-                        "area_code" => substr(preg_replace('/[^0-9]/', '', $telefone), 0, 2),
-                        "number" => substr(preg_replace('/[^0-9]/', '', $telefone), 2)
-                    ]
+                    "name" => "Cliente", // Simplifiquei para evitar erros de caractere
+                    "surname" => "Legacy"
                 ],
                 "back_urls" => [
                     "success" => URL_SUCESSO,
                     "failure" => URL_FALHA,
                     "pending" => URL_PENDENTE
                 ],
-                "auto_return" => "approved", // Volta automático se aprovado
+                "auto_return" => "approved",
                 "notification_url" => $webhook_url,
                 "payment_methods" => [
-                    "excluded_payment_types" => [
-                        ["id" => "ticket"] // Exclui boleto (opcional, pois demora cair)
-                    ]
+                    "excluded_payment_types" => [["id" => "ticket"]]
                 ]
             ];
 
-            // Chamada cURL para criar PREFERÊNCIA
             $curl = curl_init();
             curl_setopt_array($curl, [
                 CURLOPT_URL => 'https://api.mercadopago.com/checkout/preferences',
@@ -122,7 +116,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'Content-Type: application/json',
                     'Authorization: Bearer ' . $access_token
                 ],
-                // SSL desativado para Localhost (mantenha false se der erro no XAMPP)
                 CURLOPT_SSL_VERIFYPEER => false, 
                 CURLOPT_SSL_VERIFYHOST => false
             ]);
@@ -131,30 +124,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $err = curl_error($curl);
             curl_close($curl);
 
-            if ($err) die("Erro MP: " . $err);
+            if ($err) die("Erro Curl: " . $err);
 
             $mp_resposta = json_decode($response, true);
 
             if (isset($mp_resposta['init_point'])) {
-                // 'init_point' é o link do checkout real
-                // 'sandbox_init_point' é para testes, mas vamos usar o real se o token for real
-                // Como você está usando token de teste, o MP pode devolver sandbox_init_point
-                
-                $link_pagamento = $mp_resposta['init_point']; 
-                
-                // Se estiver usando token de TESTE, as vezes é melhor usar sandbox_init_point
+                // Se for token TESTE, tenta usar sandbox, senao usa init_point normal
                 if (strpos($access_token, 'TEST') === 0 && isset($mp_resposta['sandbox_init_point'])) {
                     $link_pagamento = $mp_resposta['sandbox_init_point'];
+                } else {
+                    $link_pagamento = $mp_resposta['init_point'];
                 }
-                
-                $mp_id = $mp_resposta['id']; // ID da preferência
+                $mp_id = $mp_resposta['id'];
             } else {
-                echo "<pre>"; print_r($mp_resposta); echo "</pre>";
-                die("Erro ao gerar link de pagamento.");
+                // Debug na tela se der erro de novo
+                echo "<h3>Erro MP:</h3><pre>";
+                print_r($mp_resposta);
+                echo "</pre>";
+                die();
             }
         }
 
-        // 4. Inserir no Banco
+        // 3. Inserir no Banco
         $sql = "INSERT INTO agendamentos 
                 (id_barbeiro, id_cliente, servicos_ids, nome_cliente, telefone, email, data, hora, duracao, valor_final, metodo_pagamento, status, mp_id, mp_status) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -167,7 +158,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $id_agendamento = $pdo->lastInsertId();
 
-        // Enviar E-mail (Opcional: Pode mover isso para o webhook de aprovado se quiser)
         $dadosEmail = [
             'id' => $id_agendamento,
             'nome_cliente' => $nome_cliente,
@@ -182,13 +172,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $pdo->commit();
 
-        // 5. Redirecionamento Final
         if ($metodo_pagamento === 'pix' && $link_pagamento) {
-            // Leva o cliente para o Mercado Pago
             header("Location: " . $link_pagamento);
         } else {
-            // Pagamento presencial
-            header("Location: index.php?agendamento=sucesso&mensagem=" . urlencode("Agendamento confirmado!"));
+            header("Location: index.php?agendamento=sucesso&mensagem=Agendamento realizado!");
         }
         exit;
 

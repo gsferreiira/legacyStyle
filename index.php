@@ -9,546 +9,599 @@ session_start();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legacy Style - Barbearia Premium</title>
     <link rel="shortcut icon" href="assets/LOGO LEGACY SF/1.png" type="image/x-icon">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <style>
-        /* --- ESTILOS GERAIS --- */
+        /* --- VARIAVEIS E RESET --- */
         :root {
-            --primary: #1a1a1a;
-            --secondary: #d4af37;
-            --light-bg: #f9f9f9;
-            --white: #ffffff;
+            --primary: #111111;
+            --secondary: #d4af37; /* Dourado Premium */
+            --secondary-hover: #b59530;
+            --light-gray: #f4f4f4;
+            --dark-gray: #1f1f1f;
+            --text-color: #333;
+            --text-light: #aaa;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
-        body { background-color: var(--light-bg); color: #333; overflow-x: hidden; }
-
-        /* --- ALERTAS --- */
-        .alert {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            padding: 15px 25px; border-radius: 5px; color: white; font-weight: 500;
-            z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: slideIn 0.3s, fadeOut 0.5s 3s forwards;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .alert-success { background-color: #28a745; }
-        .alert-error { background-color: #dc3545; }
-        @keyframes slideIn { from { top: -100px; opacity: 0; } to { top: 20px; opacity: 1; } }
-        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-
-        /* --- HEADER & NAV --- */
-        header {
-            background-color: var(--primary); color: #fff; padding: 15px 0;
-            position: fixed; width: 100%; z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-        .container { width: 90%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        .header-content { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; font-weight: 700; color: var(--secondary); display: flex; align-items: center; gap: 10px; text-decoration: none;}
-        .logo span { color: #fff; }
-        .logo img { height: 50px; }
         
-        .menu-toggle { display: none; cursor: pointer; font-size: 24px; color: var(--secondary); }
-        nav ul { display: flex; list-style: none; gap: 25px; align-items: center; }
-        nav ul li a { color: #fff; text-decoration: none; font-weight: 500; transition: color 0.3s; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
-        nav ul li a:hover { color: var(--secondary); }
-
-        .login-link {
-            border: 1px solid var(--secondary); padding: 8px 20px; border-radius: 30px;
-            color: var(--secondary) !important; font-weight: bold; transition: all 0.3s;
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: #fff; 
+            color: var(--text-color); 
+            line-height: 1.6;
+            overflow-x: hidden;
         }
-        .login-link:hover { background: var(--secondary); color: var(--primary) !important; }
 
-        /* --- HERO SECTION --- */
-        .hero {
-            height: 100vh; min-height: 600px;
-            background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.7)), url('assets/interior1.jpg'); 
-            background-size: cover; background-position: center; background-attachment: fixed;
-            display: flex; align-items: center; text-align: center; color: #fff; padding-top: 70px;
-        }
-        .hero-content h1 { font-size: 48px; margin-bottom: 20px; line-height: 1.2; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
-        .hero-content p { font-size: 18px; margin-bottom: 35px; max-width: 700px; margin-left: auto; margin-right: auto; color: #ddd; }
+        /* --- UTILITARIOS --- */
+        .container { width: 90%; max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+        .section-padding { padding: 100px 0; }
+        .text-center { text-align: center; }
+        .gold-text { color: var(--secondary); }
         
         .btn {
-            display: inline-block; background-color: var(--secondary); color: var(--primary);
-            padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: 700;
-            transition: all 0.3s; font-size: 14px; text-transform: uppercase; border: none; cursor: pointer; letter-spacing: 1px;
+            display: inline-block;
+            background: var(--secondary);
+            color: #000;
+            padding: 16px 40px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
         }
-        .btn:hover { background-color: #fff; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); }
+        .btn:hover {
+            background: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+        }
+        .btn-outline:hover {
+            background: var(--secondary);
+            color: #000;
+        }
 
-        /* --- SECTIONS PADRÃO --- */
-        section { padding: 80px 0; }
-        .section-title { text-align: center; margin-bottom: 60px; }
-        .section-title h2 { font-size: 36px; color: var(--primary); position: relative; display: inline-block; padding-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
-        .section-title h2::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 60px; height: 3px; background-color: var(--secondary); }
-
-        /* --- SOBRE NÓS (SEM FOTO / MANIFESTO) --- */
-        .about-text-full { text-align: center; max-width: 900px; margin: 0 auto; }
-        .about-text-full h3 { font-size: 28px; color: var(--primary); margin-bottom: 30px; font-weight: 300; line-height: 1.4; }
-        .about-text-full p { font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px; }
+        /* --- HEADER --- */
+        header {
+            background: rgba(0, 0, 0, 0.95);
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid #333;
+            transition: 0.3s;
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
         
-        .values-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-top: 60px; }
-        .value-item { padding: 30px; background: white; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: 0.3s; border-bottom: 3px solid transparent; }
-        .value-item:hover { transform: translateY(-10px); border-bottom-color: var(--secondary); }
-        .value-icon { font-size: 40px; color: var(--secondary); margin-bottom: 20px; }
-        .value-item h4 { font-size: 20px; margin-bottom: 15px; text-transform: uppercase; }
-        .value-item p { font-size: 14px; color: #666; line-height: 1.6; }
+        .logo { font-size: 24px; font-weight: 800; color: #fff; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+        .logo span { color: var(--secondary); }
+        .logo img { height: 50px; }
+
+        nav ul { display: flex; list-style: none; gap: 30px; }
+        nav a { color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        nav a:hover { color: var(--secondary); }
+        
+        .login-btn-menu {
+            border: 1px solid var(--secondary);
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: var(--secondary) !important;
+        }
+        .login-btn-menu:hover { background: var(--secondary); color: #000 !important; }
+
+        .menu-toggle { display: none; color: #fff; font-size: 24px; cursor: pointer; }
+
+        /* --- HERO SECTION (PARALLAX) --- */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.6)), url('assets/interior1.jpg'); /* FOTO DE FUNDO GENÉRICA DE ALTA QUALIDADE */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            padding-top: 80px;
+        }
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 60px;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            color: #ddd;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- FEATURE CARDS (NOVO: SOBREPOSTO AO HERO) --- */
+        .features-wrapper {
+            margin-top: -80px;
+            position: relative;
+            z-index: 10;
+            padding-bottom: 50px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .feature-card {
+            background: #fff;
+            padding: 40px 30px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: 0.3s;
+            border-bottom: 4px solid transparent;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-bottom-color: var(--secondary);
+        }
+        .feature-icon {
+            font-size: 40px;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+        .feature-card h3 { font-size: 20px; margin-bottom: 15px; text-transform: uppercase; }
+        .feature-card p { font-size: 14px; color: #666; }
+
+        /* --- SOBRE (TEXTO + TEXTURA) --- */
+        .about-section { background-color: #fff; }
+        .about-grid { display: flex; align-items: center; gap: 50px; flex-wrap: wrap; }
+        .about-content { flex: 1; min-width: 300px; }
+        .about-title-small { color: var(--secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; font-size: 14px; margin-bottom: 10px; display: block; }
+        .about-content h2 { font-size: 36px; line-height: 1.2; margin-bottom: 25px; color: var(--primary); }
+        .about-content p { margin-bottom: 20px; color: #555; font-size: 16px; }
+        
+        /* Contador de Estatísticas (Enche linguiça visualmente) */
+        .stats-grid { 
+            display: flex; 
+            gap: 40px; 
+            margin-top: 30px; 
+            border-top: 1px solid #eee; 
+            padding-top: 30px; 
+        }
+        .stat-item strong { display: block; font-size: 32px; color: var(--primary); font-weight: 800; }
+        .stat-item span { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- SERVIÇOS (DARK MODE) --- */
+        .services-section { background-color: #111; color: #fff; background-image: url('assets/pattern-dark.png'); /* Textura sutil opcional */ }
+        .section-header { text-align: center; margin-bottom: 60px; }
+        .section-header h2 { font-size: 36px; margin-bottom: 15px; color: #fff; }
+        .section-header .divider { height: 3px; width: 70px; background: var(--secondary); margin: 0 auto; }
+        
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        .service-card {
+            background: #1f1f1f;
+            padding: 35px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .service-card:hover { border-color: var(--secondary); transform: translateY(-5px); }
+        .service-card i { font-size: 35px; color: var(--secondary); margin-bottom: 20px; }
+        .service-card h3 { font-size: 20px; margin-bottom: 10px; color: #fff; }
+        .service-card p { color: #888; font-size: 14px; margin-bottom: 20px; }
+        .service-card .price { font-size: 24px; font-weight: 700; color: #fff; }
 
         /* --- BARBEIROS --- */
-        .barbers { background-color: #fff; }
-        .barbers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-        .barber-card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: 0.3s; }
-        .barber-card:hover { transform: translateY(-10px); box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
-        .barber-img { height: 400px; overflow: hidden; }
+        .barbers-section { background-color: #f9f9f9; }
+        .barber-card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+        .barber-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .barber-img { height: 380px; overflow: hidden; background: #eee; position: relative; }
         .barber-img img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
         .barber-card:hover .barber-img img { transform: scale(1.05); }
-        .barber-info { padding: 25px; text-align: center; }
+        
+        .barber-info { padding: 30px; text-align: center; }
         .barber-info h3 { font-size: 22px; margin-bottom: 5px; }
-        .barber-info p.role { color: var(--secondary); font-weight: 600; margin-bottom: 15px; text-transform: uppercase; font-size: 13px; }
-
-        /* --- SERVIÇOS --- */
-        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
-        .service-card {
-            background: #fff; padding: 40px 30px; border-radius: 5px; text-align: center;
-            border: 1px solid #eee; transition: 0.3s; position: relative;
-        }
-        .service-card:hover { border-color: var(--secondary); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        .service-icon { font-size: 40px; color: var(--secondary); margin-bottom: 20px; }
-        .service-card h3 { font-size: 18px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .service-card .price { color: var(--secondary); font-size: 22px; font-weight: 700; margin-top: 15px; display: block; }
+        .barber-info span { color: var(--secondary); font-size: 13px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 15px; }
+        .social-icons a { color: #333; margin: 0 5px; font-size: 18px; transition: 0.3s; }
+        .social-icons a:hover { color: var(--secondary); }
 
         /* --- DEPOIMENTOS --- */
-        .testimonials { background-color: var(--primary); color: white; }
-        .testimonials h2 { color: white; }
-        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-        .testimonial-card { background: #222; padding: 40px; border-radius: 5px; position: relative; }
-        .testimonial-card::before { content: '"'; font-size: 60px; color: var(--secondary); opacity: 0.3; position: absolute; top: 10px; left: 20px; font-family: serif; }
-        .testimonial-text { font-style: italic; margin-bottom: 20px; color: #ddd; line-height: 1.6; position: relative; z-index: 1; }
-        .testimonial-author h4 { color: var(--secondary); margin-bottom: 2px; font-size: 16px; }
-        .testimonial-author span { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* --- CONTATO --- */
-        .contact-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 50px; }
-        .info-item { display: flex; gap: 20px; margin-bottom: 30px; }
-        .info-icon { width: 50px; height: 50px; background: rgba(212, 175, 55, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--secondary); font-size: 20px; flex-shrink: 0; }
-        .info-text h4 { margin-bottom: 8px; font-size: 18px; color: var(--primary); }
-        .info-text p, .info-text a { color: #666; text-decoration: none; font-size: 15px; line-height: 1.6; }
-        
-        .contact-form input, .contact-form textarea {
-            width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd;
-            border-radius: 5px; background: #fff; font-size: 14px; font-family: 'Montserrat', sans-serif;
+        .testimonials-section { padding: 80px 0; background: #fff; text-align: center; }
+        .testimonial-slider { display: flex; gap: 30px; overflow-x: auto; padding: 20px 0; scroll-snap-type: x mandatory; }
+        .testimonial-item { 
+            min-width: 300px; 
+            flex: 1;
+            background: #fff; 
+            padding: 30px; 
+            border: 2px solid #f4f4f4; 
+            border-radius: 10px;
+            scroll-snap-align: center;
         }
-        .contact-form textarea { height: 150px; resize: none; }
+        .stars { color: var(--secondary); margin-bottom: 15px; }
+        .quote { font-style: italic; color: #555; margin-bottom: 20px; font-size: 15px; }
+        .client-name { font-weight: 700; font-size: 14px; text-transform: uppercase; }
+
+        /* --- CONTATO E MAPA --- */
+        .contact-section { background: #111; color: #fff; }
+        .contact-wrapper { display: flex; flex-wrap: wrap; }
+        .contact-info { flex: 1; padding: 80px 50px; min-width: 300px; }
+        .contact-map { flex: 1; min-width: 300px; height: 500px; background: #222; } /* Espaço para o mapa */
+        
+        .info-row { display: flex; gap: 20px; margin-bottom: 30px; }
+        .info-row i { font-size: 24px; color: var(--secondary); margin-top: 5px; }
+        .info-row h4 { font-size: 18px; margin-bottom: 5px; color: #fff; }
+        .info-row p { color: #888; font-size: 15px; }
 
         /* --- FOOTER --- */
-        footer { background: #000; color: #fff; padding: 60px 0 20px; text-align: center; }
-        .footer-logo { font-size: 28px; font-weight: 700; margin-bottom: 30px; color: var(--secondary); letter-spacing: 2px; }
-        .footer-logo span { color: #fff; }
-        .footer-links { display: flex; justify-content: center; gap: 30px; margin-bottom: 40px; flex-wrap: wrap; }
-        .footer-links a { color: #888; text-decoration: none; transition: 0.3s; font-size: 14px; text-transform: uppercase; }
-        .footer-links a:hover { color: var(--secondary); }
-        .copyright { border-top: 1px solid #222; padding-top: 30px; color: #444; font-size: 12px; letter-spacing: 1px; }
+        footer { background: #000; color: #777; padding: 30px 0; text-align: center; font-size: 13px; border-top: 1px solid #222; }
 
-        /* --- WHATSAPP FLUTUANTE --- */
-        .whatsapp-float {
-            position: fixed; bottom: 30px; right: 30px;
-            background-color: #25d366; color: white;
-            width: 60px; height: 60px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
-            z-index: 2000; transition: 0.3s; text-decoration: none;
-        }
-        .whatsapp-float:hover { transform: scale(1.1); background-color: #1da851; }
-
-        /* --- MODAL DE AGENDAMENTO --- */
-        .booking-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; overflow-y: auto; backdrop-filter: blur(5px); }
-        .booking-content { background: #fff; margin: 5vh auto; width: 95%; max-width: 600px; border-radius: 5px; position: relative; padding: 0; overflow: hidden; animation: slideUp 0.3s; }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .booking-header { background: var(--primary); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center; }
+        /* --- MODAL (NOVO DESIGN CLEAN) --- */
+        .booking-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; overflow-y: auto; backdrop-filter: blur(8px); }
+        .booking-content { background: #fff; width: 95%; max-width: 500px; margin: 5vh auto; border-radius: 12px; overflow: hidden; animation: fadeInUp 0.4s ease; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .booking-header { background: #1a1a1a; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .booking-header h3 { color: #fff; margin: 0; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .close-booking { color: var(--secondary); font-size: 28px; cursor: pointer; line-height: 1; }
+        
         .booking-body { padding: 30px; }
+        .step-indicator { font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+        .step-title { font-size: 24px; color: var(--primary); margin-bottom: 25px; font-weight: 700; }
+
+        /* Cards do Modal */
+        .option-card {
+            border: 2px solid #f0f0f0; border-radius: 10px; padding: 15px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s;
+        }
+        .option-card:hover, .option-card.selected { border-color: var(--secondary); background: #fffdf5; }
+        .option-card img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
         
-        .barber-option { display: flex; align-items: center; gap: 20px; padding: 15px; border: 2px solid #eee; border-radius: 5px; margin-bottom: 15px; cursor: pointer; transition: 0.3s; }
-        .barber-option:hover, .barber-option.selected { border-color: var(--secondary); background: rgba(212, 175, 55, 0.05); }
-        .barber-option img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
-        
-        .service-option { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
-        .service-option input { width: 20px; height: 20px; accent-color: var(--secondary); }
-        
-        #timeSlots { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 15px; }
-        .time-slot { padding: 10px; background: #eee; border: none; border-radius: 3px; cursor: pointer; font-weight: 600; font-size: 13px; }
-        .time-slot:hover, .time-slot.selected { background: var(--secondary); color: white; }
-        
-        .confirmation-total { margin-top: 20px; font-size: 20px; font-weight: 700; color: var(--secondary); text-align: right; }
-        
-        .btn-secondary { background: #eee; color: #333; }
-        .navigation-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .navigation-buttons button { flex: 1; }
+        /* Botões Modal */
+        .modal-btn { width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .btn-next { background: var(--primary); color: #fff; }
+        .btn-back { background: #f0f0f0; color: #555; margin-top: 10px; }
 
         /* --- RESPONSIVO --- */
         @media (max-width: 768px) {
-            .hero-content h1 { font-size: 32px; }
+            .hero h1 { font-size: 40px; }
+            .features-wrapper { margin-top: 0; padding-top: 50px; background: #f9f9f9; }
             .menu-toggle { display: block; }
-            nav { position: fixed; top: 70px; left: -100%; width: 100%; height: calc(100vh - 70px); background: #1a1a1a; transition: 0.3s; flex-direction: column; justify-content: center; }
-            nav.active { left: 0; }
+            nav { position: fixed; top: 70px; right: -100%; width: 80%; height: 100vh; background: #000; flex-direction: column; padding: 40px; transition: 0.4s; }
+            nav.active { right: 0; }
             nav ul { flex-direction: column; }
-            .about-text-full h3 { font-size: 24px; }
+            .about-grid { flex-direction: column; }
+            .contact-wrapper { flex-direction: column; }
+            .contact-map { height: 300px; }
         }
+        
+        /* Whats Flutuante */
+        .whatsapp-float { position: fixed; bottom: 25px; right: 25px; background: #25d366; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 2000; transition: 0.3s; }
+        .whatsapp-float:hover { transform: scale(1.1); }
+        
+        /* Estilos extras para o modal */
+        #timeSlots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .time-slot { background: #f9f9f9; border: 1px solid #ddd; padding: 10px; border-radius: 6px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .time-slot:hover, .time-slot.selected { background: var(--secondary); color: #000; border-color: var(--secondary); }
+        .service-check-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="container">
-            <div class="header-content">
-                <a href="index.php" class="logo">
-                    <img src="assets/LOGO LEGACY SF/2.png" alt="Legacy Style">
-                    LEGACY <span>STYLE</span>
-                </a>
-                <div class="menu-toggle"><i class="fas fa-bars"></i></div>
-                <nav>
-                    <ul>
-                        <li><a href="#home">Início</a></li>
-                        <li><a href="#about">A Marca</a></li>
-                        <li><a href="#barbers">Equipe</a></li>
-                        <li><a href="#services">Serviços</a></li>
-                        <li><a href="#contact">Contato</a></li>
-                        
-                        <?php if (isset($_SESSION['cliente_id'])): ?>
-                            <li><a href="meus_agendamentos.php" class="login-link">
-                                <i class="fas fa-user-circle"></i> Olá, <?= explode(' ', $_SESSION['cliente_nome'])[0] ?>
-                            </a></li>
-                        <?php else: ?>
-                            <li><a href="entrar.php" class="login-link">
-                                <i class="fas fa-sign-in-alt"></i> Agendar / Login
-                            </a></li>
-                        <?php endif; ?>
-                    </ul>
-                </nav>
-            </div>
+        <div class="container header-content">
+            <a href="index.php" class="logo"><img src="assets/LOGO LEGACY SF/2.png" alt="Legacy"> LEGACY <span>STYLE</span></a>
+            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+            <nav>
+                <ul>
+                    <li><a href="#home">Início</a></li>
+                    <li><a href="#about">Sobre</a></li>
+                    <li><a href="#services">Serviços</a></li>
+                    <li><a href="#barbers">Barbeiros</a></li>
+                    <li><a href="#contact">Contato</a></li>
+                    <?php if (isset($_SESSION['cliente_id'])): ?>
+                        <li><a href="meus_agendamentos.php" class="login-btn-menu"><i class="fas fa-user"></i> Minha Conta</a></li>
+                    <?php else: ?>
+                        <li><a href="entrar.php" class="login-btn-menu">Entrar</a></li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
         </div>
     </header>
 
     <section class="hero" id="home">
         <div class="container">
-            <div class="hero-content">
-                <h1>Mais que um corte,<br>Um Legado.</h1>
-                <p>Experiência premium em barbearia. Onde o estilo clássico encontra a técnica moderna.</p>
+            <p style="letter-spacing: 3px; font-size: 14px; text-transform: uppercase; margin-bottom: 10px;">Estilo & Tradição desde 2024</p>
+            <h1>MAIS QUE UM CORTE,<br>UM LEGADO.</h1>
+            <p>Descubra a melhor experiência em barbearia de Curitiba. Ambiente exclusivo, profissionais de elite e atendimento premium.</p>
+            <div style="margin-top: 30px;">
                 <a href="#" class="btn" id="bookNowHero">Agendar Horário</a>
+                <a href="#about" class="btn btn-outline" style="margin-left: 15px; color: #fff; border-color: #fff;">Saber Mais</a>
             </div>
         </div>
     </section>
 
-    <section id="about">
+    <div class="features-wrapper">
         <div class="container">
-            <div class="section-title">
-                <h2>O Conceito Legacy</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-cut feature-icon"></i>
+                    <h3>Técnica Apurada</h3>
+                    <p>Dominamos do clássico ao moderno com precisão milimétrica e acabamento perfeito.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-glass-whiskey feature-icon"></i>
+                    <h3>Ambiente Premium</h3>
+                    <p>Espaço climatizado, cerveja gelada, café e aquela resenha que faz você se sentir em casa.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-clock feature-icon"></i>
+                    <h3>Pontualidade</h3>
+                    <p>Respeito absoluto ao seu tempo. Sistema de agendamento online rápido e sem filas.</p>
+                </div>
             </div>
-            
-            <div class="about-text-full">
-                <h3>Resgatando a autoestima masculina com tradição e estilo.</h3>
-                <p>A <strong>Legacy Style</strong> nasceu no final de 2024 da união de dois propósitos: a técnica apurada e o atendimento de excelência. Fundada por Cauã e Vitinho, nossa missão vai muito além de cortar cabelo. Queremos que cada homem que senta em nossa cadeira levante se sentindo mais confiante, renovado e pronto para conquistar seus objetivos.</p>
-                <p>Aqui, a pressa fica da porta para fora. Valorizamos a resenha, o ambiente descontraído e o cuidado com os detalhes. Usamos produtos de primeira linha e técnicas que misturam a barbearia clássica com as tendências urbanas atuais.</p>
+        </div>
+    </div>
 
-                <div class="values-grid">
-                    <div class="value-item">
-                        <i class="fas fa-cut value-icon"></i>
-                        <h4>Precisão Técnica</h4>
-                        <p>Nossos profissionais estão em constante evolução. Do degradê navalhado ao corte social na tesoura, garantimos simetria e acabamento impecável.</p>
+    <section class="section-padding about-section" id="about">
+        <div class="container about-grid">
+            <div class="about-content">
+                <span class="about-title-small">Nossa História</span>
+                <h2>Onde a tradição encontra o estilo moderno.</h2>
+                <p>A <strong>Legacy Style</strong> nasceu da união de dois propósitos: a paixão pela barbearia clássica e a necessidade de inovação. Fundada por Cauã e Vitinho, nossa missão vai além da estética. Queremos resgatar a autoestima masculina através de um serviço de excelência.</p>
+                <p>Aqui, cada detalhe importa. Desde a toalha quente na barba até a finalização do penteado. Não vendemos apenas cortes, vendemos confiança para você enfrentar o dia a dia.</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <strong>+2000</strong>
+                        <span>Cortes Realizados</span>
                     </div>
-                    <div class="value-item">
-                        <i class="fas fa-glass-cheers value-icon"></i>
-                        <h4>Ambiente Premium</h4>
-                        <p>Mais que uma barbearia, um ponto de encontro. Música boa, ambiente climatizado e aquela resenha que faz você se sentir em casa.</p>
+                    <div class="stat-item">
+                        <strong>100%</strong>
+                        <span>Satisfação</span>
                     </div>
-                    <div class="value-item">
-                        <i class="fas fa-clock value-icon"></i>
-                        <h4>Pontualidade</h4>
-                        <p>Respeitamos o seu tempo. Com nosso sistema de agendamento online, você chega e é atendido, sem filas e sem espera desnecessária.</p>
+                    <div class="stat-item">
+                        <strong>4.9</strong>
+                        <span>Avaliação Google</span>
                     </div>
                 </div>
+            </div>
+            <div class="about-image" style="flex:1;">
+                <img src="https://images.unsplash.com/photo-1503951914875-befbb649186f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Ferramentas de Barbeiro" style="width:100%; border-radius:10px; box-shadow: 0 15px 40px rgba(0,0,0,0.1);">
             </div>
         </div>
     </section>
 
-    <section class="barbers" id="barbers">
+    <section class="section-padding services-section" id="services">
         <div class="container">
-            <div class="section-title">
-                <h2>Nossos Especialistas</h2>
-            </div>
-            <div class="barbers-grid">
-                <div class="barber-card">
-                    <div class="barber-img">
-                        <img src="assets/fotocaua.png" alt="Barbeiro Cauã">
-                    </div>
-                    <div class="barber-info">
-                        <h3>Cauã Silva</h3>
-                        <p class="role">Co-Founder & Master Barber</p>
-                        <a href="caua.php" class="btn" style="padding: 10px 25px; font-size: 13px;">Ver Perfil Completo</a>
-                    </div>
-                </div>
-
-                <div class="barber-card">
-                    <div class="barber-img">
-                        <img src="assets/fotovitor.png" alt="Barbeiro Vitinho">
-                    </div>
-                    <div class="barber-info">
-                        <h3>Vitinho</h3>
-                        <p class="role">Co-Founder & Fade Specialist</p>
-                        <a href="vitinho.php" class="btn" style="padding: 10px 25px; font-size: 13px;">Ver Perfil Completo</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="services" style="background: #f9f9f9;">
-        <div class="container">
-            <div class="section-title">
-                <h2>Menu de Serviços</h2>
+            <div class="section-header">
+                <h2>Nossos Serviços</h2>
+                <div class="divider"></div>
             </div>
             <div class="services-grid">
+                <?php
+                $servicos = $pdo->query("SELECT * FROM servicos")->fetchAll();
+                foreach($servicos as $s):
+                ?>
                 <div class="service-card">
-                    <i class="fas fa-cut service-icon"></i>
-                    <h3>Corte Premium</h3>
-                    <p>Consultoria de visagismo, corte e finalização com pomada.</p>
-                    <span class="price">R$ 40,00</span>
+                    <i class="fas fa-cut"></i> <h3><?= $s['nome'] ?></h3>
+                    <p>Experiência completa com lavagem e finalização com produtos premium.</p>
+                    <div class="price">R$ <?= number_format($s['preco'], 2, ',', '.') ?></div>
                 </div>
-                <div class="service-card">
-                    <i class="fas fa-user-tie service-icon"></i>
-                    <h3>Barba Terapia</h3>
-                    <p>Toalha quente, esfoliação e alinhamento dos fios.</p>
-                    <span class="price">R$ 30,00</span>
-                </div>
-                <div class="service-card">
-                    <i class="fas fa-crown service-icon"></i>
-                    <h3>Combo Legacy</h3>
-                    <p>A experiência completa: Cabelo + Barba + Bebida.</p>
-                    <span class="price">R$ 80,00</span>
-                </div>
-                <div class="service-card">
-                    <i class="fas fa-paint-brush service-icon"></i>
-                    <h3>Pigmentação</h3>
-                    <p>Acabamento perfeito para cobrir falhas e realçar o perfil.</p>
-                    <span class="price">R$ 35,00</span>
-                </div>
-                <div class="service-card">
-                    <i class="fas fa-bolt service-icon"></i>
-                    <h3>Platinado</h3>
-                    <p>Descoloração global segura com matização premium.</p>
-                    <span class="price">R$ 100,00</span>
-                </div>
-                <div class="service-card">
-                    <i class="fas fa-child service-icon"></i>
-                    <h3>Kids</h3>
-                    <p>Atendimento paciente e especializado para crianças.</p>
-                    <span class="price">R$ 35,00</span>
-                </div>
+                <?php endforeach; ?>
             </div>
-            <div style="text-align: center; margin-top: 50px;">
-                <a href="#" class="btn" id="bookNowServices">Garantir meu horário</a>
+            <div class="text-center" style="margin-top: 50px;">
+                <a href="#" class="btn" id="bookNowServices">Agendar Agora</a>
             </div>
         </div>
     </section>
 
-    <section class="testimonials">
+    <section class="section-padding barbers-section" id="barbers">
         <div class="container">
-            <div class="section-title">
-                <h2>Feedback dos Clientes</h2>
+            <div class="section-header">
+                <h2 style="color: #111;">Equipe de Elite</h2>
+                <div class="divider"></div>
             </div>
-            <div class="testimonials-grid">
-                <div class="testimonial-card">
-                    <p class="testimonial-text">"Ambiente sensacional! O Cauã entende exatamente o que a gente pede. O corte ficou perfeito e o atendimento nota 10."</p>
-                    <div class="testimonial-author">
-                        <h4>Rafael Mendes</h4>
-                        <span>Cliente Mensalista</span>
+            <div class="barbers-grid">
+                <?php
+                $barbeiros = $pdo->query("SELECT * FROM barbeiros")->fetchAll();
+                foreach($barbeiros as $b):
+                ?>
+                <div class="barber-card">
+                    <div class="barber-img">
+                        <img src="assets/<?= $b['foto'] ?>" alt="<?= $b['nome'] ?>">
+                    </div>
+                    <div class="barber-info">
+                        <h3><?= $b['nome'] ?></h3>
+                        <span><?= $b['especialidade'] ?></span>
+                        <div class="social-icons">
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        </div>
+                        <a href="<?= $b['id'] == 1 ? 'caua.php' : 'vitinho.php' ?>" class="btn btn-outline" style="margin-top: 20px; padding: 10px 20px; font-size: 12px;">Ver Perfil</a>
                     </div>
                 </div>
-                <div class="testimonial-card">
-                    <p class="testimonial-text">"Finalmente achei uma barbearia que respeita o horário marcado. O sistema de agendamento é muito prático e o Vitinho manda muito no degradê."</p>
-                    <div class="testimonial-author">
-                        <h4>Gustavo Lima</h4>
-                        <span>Cliente há 6 meses</span>
-                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 style="color: #111;">O que dizem os clientes</h2>
+            </div>
+            <div class="testimonial-slider">
+                <div class="testimonial-item">
+                    <div class="stars">★★★★★</div>
+                    <p class="quote">"Melhor barbearia da região! O Vitinho manda muito no degradê. Ambiente top demais."</p>
+                    <span class="client-name">- Gabriel S.</span>
                 </div>
-                <div class="testimonial-card">
-                    <p class="testimonial-text">"Qualidade absurda. Fiz o combo cabelo e barba e saí renovado. A toalha quente na barba faz toda a diferença. Recomendo!"</p>
-                    <div class="testimonial-author">
-                        <h4>André Ferreira</h4>
-                        <span>Cliente Novo</span>
-                    </div>
+                <div class="testimonial-item">
+                    <div class="stars">★★★★★</div>
+                    <p class="quote">"Atendimento impecável do Cauã. O sistema de agendamento funciona muito bem, sem atrasos."</p>
+                    <span class="client-name">- Lucas O.</span>
+                </div>
+                <div class="testimonial-item">
+                    <div class="stars">★★★★★</div>
+                    <p class="quote">"Fiz o combo barba e cabelo e saí renovado. A toalha quente é um diferencial. Recomendo!"</p>
+                    <span class="client-name">- Ricardo A.</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="contact">
-        <div class="container">
-            <div class="section-title">
-                <h2>Onde Estamos</h2>
+    <section class="contact-section" id="contact">
+        <div class="contact-wrapper">
+            <div class="contact-info">
+                <span class="about-title-small">Visite-nos</span>
+                <h2 style="margin-bottom: 40px;">Estamos esperando por você.</h2>
+                
+                <div class="info-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <h4>Endereço</h4>
+                        <p>Rua Pedro Gusso, 744 - Capão Raso<br>Curitiba - PR</p>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <h4>Horários</h4>
+                        <p>Seg a Sex: 09:00 - 20:00</p>
+                        <p>Sábado: 08:00 - 17:30</p>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-phone-alt"></i>
+                    <div>
+                        <h4>Contato</h4>
+                        <p>(41) 99988-8727</p>
+                        <p>legacystyle@gmail.com</p>
+                    </div>
+                </div>
             </div>
-            <div class="contact-container">
-                <div class="contact-info">
-                    <div class="info-item">
-                        <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
-                        <div class="info-text">
-                            <h4>Localização</h4>
-                            <p>Rua Pedro Gusso, 744<br>Capão Raso, Curitiba - PR</p>
-                            <a href="https://maps.google.com/?q=Rua+Pedro+Gusso+744+Curitiba" target="_blank" style="color:var(--secondary); font-size:13px; font-weight:600;">Ver no Mapa</a>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-icon"><i class="fas fa-mobile-alt"></i></div>
-                        <div class="info-text">
-                            <h4>WhatsApp</h4>
-                            <p>(41) 99988-8727 (Cauã)</p>
-                            <p>(41) 98838-3629 (Vitinho)</p>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-icon"><i class="fas fa-clock"></i></div>
-                        <div class="info-text">
-                            <h4>Horários</h4>
-                            <p>Seg - Sex: 09:00 às 20:00</p>
-                            <p>Sábado: 08:00 às 17:30</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="contact-form">
-                    <form>
-                        <input type="text" placeholder="Nome Completo">
-                        <input type="email" placeholder="E-mail">
-                        <textarea placeholder="Como podemos ajudar?"></textarea>
-                        <button class="btn" style="width: 100%;">Enviar Mensagem</button>
-                    </form>
-                </div>
+            <div class="contact-map">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3601.23456789!2d-49.29!3d-25.50!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjXCsDMwJzAwLjAiUyA0OcKwMTcnMDAuMCJX!5e0!3m2!1spt-BR!2sbr!4v1600000000000!5m2!1spt-BR!2sbr" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
     </section>
 
     <footer>
         <div class="container">
-            <div class="footer-logo">LEGACY <span>STYLE</span></div>
-            <div class="footer-links">
-                <a href="#home">Home</a>
-                <a href="#about">Conceito</a>
-                <a href="entrar.php">Área do Cliente</a>
-                <a href="login.php">Acesso Restrito</a>
-            </div>
-            <div class="social-links" style="justify-content: center;">
-                <a href="https://instagram.com" target="_blank" style="background: #222; color: #fff;"><i class="fab fa-instagram"></i></a>
-                <a href="https://facebook.com" target="_blank" style="background: #222; color: #fff;"><i class="fab fa-facebook"></i></a>
-            </div>
-            <div class="copyright">
-                © 2024 Legacy Style Barbearia. Todos os direitos reservados.
-            </div>
+            <div class="logo" style="justify-content: center; margin-bottom: 20px;">LEGACY <span>STYLE</span></div>
+            <p>&copy; 2024 Legacy Style Barbearia. Todos os direitos reservados.</p>
         </div>
     </footer>
 
-    <a href="https://wa.me/5541999888727" class="whatsapp-float" target="_blank">
-        <i class="fab fa-whatsapp"></i>
-    </a>
+    <a href="https://wa.me/5541999888727" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
 
     <div class="booking-modal" id="bookingModal">
         <div class="booking-content">
             <div class="booking-header">
                 <h3>Agendar Horário</h3>
-                <span class="close-booking"><i class="fas fa-times"></i></span>
+                <span class="close-booking">&times;</span>
             </div>
-            
             <div class="booking-body">
                 <div id="step1">
-                    <p style="margin-bottom: 15px; color: #666;">Escolha o profissional:</p>
+                    <span class="step-indicator">Passo 1 de 4</span>
+                    <h4 class="step-title">Escolha o Profissional</h4>
                     <div class="barber-selection">
-                        <?php
-                        $barbeiros = $pdo->query("SELECT * FROM barbeiros")->fetchAll();
-                        foreach ($barbeiros as $barbeiro): 
-                        ?>
-                            <div class="barber-option" data-barber="<?= $barbeiro['id'] ?>">
-                                <img src="assets/<?= $barbeiro['foto'] ?>" alt="<?= $barbeiro['nome'] ?>">
-                                <div>
-                                    <h4 style="margin:0; color: var(--primary);"><?= $barbeiro['nome'] ?></h4>
-                                    <small style="color: #888;"><?= $barbeiro['especialidade'] ?></small>
-                                </div>
+                        <?php foreach($barbeiros as $b): ?>
+                        <div class="option-card barber-option" data-barber="<?= $b['id'] ?>">
+                            <img src="assets/<?= $b['foto'] ?>">
+                            <div>
+                                <h4 style="margin:0; font-size:16px; font-weight:700; color:#333;"><?= $b['nome'] ?></h4>
+                                <span style="font-size:12px; color:#777;"><?= $b['especialidade'] ?></span>
                             </div>
+                        </div>
                         <?php endforeach; ?>
                     </div>
                 </div>
 
                 <div id="step2" style="display:none;">
-                    <p style="margin-bottom: 15px; color: #666;">Selecione os serviços:</p>
-                    <div class="service-selection">
-                        <?php
-                        $servicos = $pdo->query("SELECT * FROM servicos")->fetchAll();
-                        foreach ($servicos as $servico): 
-                        ?>
-                            <label class="service-option">
+                    <span class="step-indicator">Passo 2 de 4</span>
+                    <h4 class="step-title">Serviços</h4>
+                    <div style="max-height: 250px; overflow-y: auto;">
+                        <?php foreach($servicos as $s): ?>
+                        <div class="service-check-item">
+                            <label style="display:flex; align-items:center; width:100%; cursor:pointer;">
+                                <input type="checkbox" style="width:18px; height:18px; margin-right:10px; accent-color:var(--secondary);"
+                                    data-service="<?= $s['id'] ?>" 
+                                    data-duration="<?= $s['duracao'] ?>" 
+                                    data-price="<?= $s['preco'] ?>">
                                 <div>
-                                    <h4 style="margin:0; font-size: 15px;"><?= $servico['nome'] ?></h4>
-                                    <small style="color: #888;"><?= $servico['duracao'] ?> min • R$ <?= number_format($servico['preco'], 2, ',', '.') ?></small>
+                                    <div style="font-weight:600; font-size:14px;"><?= $s['nome'] ?></div>
+                                    <div style="font-size:12px; color:#888;">R$ <?= number_format($s['preco'], 2, ',', '.') ?> • <?= $s['duracao'] ?> min</div>
                                 </div>
-                                <input type="checkbox" 
-                                    data-service="<?= $servico['id'] ?>" 
-                                    data-duration="<?= $servico['duracao'] ?>"
-                                    data-price="<?= $servico['preco'] ?>">
                             </label>
+                        </div>
                         <?php endforeach; ?>
                     </div>
-                    <div class="confirmation-total">
-                        Total: <span id="totalPrice">R$ 0,00</span>
-                    </div>
-                    <div class="navigation-buttons">
-                        <button class="btn btn-secondary" id="backToStep1">Voltar</button>
-                        <button class="btn" id="nextToStep3">Continuar</button>
-                    </div>
+                    <div style="text-align:right; margin-top:15px; font-weight:700;">Total: <span id="totalPrice" style="color:var(--secondary);">R$ 0,00</span></div>
+                    <button class="modal-btn btn-next" id="nextToStep3">Continuar</button>
+                    <button class="modal-btn btn-back" onclick="goToStep(1)">Voltar</button>
                 </div>
 
                 <div id="step3" style="display:none;">
-                    <p style="margin-bottom: 15px; color: #666;">Escolha a data:</p>
-                    <input type="date" id="appointmentDate" min="<?= date('Y-m-d') ?>" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 100%;">
-                    
-                    <div id="timeSlotsContainer" style="margin-top: 20px;">
-                        <p style="margin-bottom: 10px; font-weight: 600;">Horários disponíveis:</p>
+                    <span class="step-indicator">Passo 3 de 4</span>
+                    <h4 class="step-title">Data e Hora</h4>
+                    <input type="date" id="appointmentDate" class="form-control" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:6px;" min="<?= date('Y-m-d') ?>">
+                    <div id="timeSlotsContainer" style="display:none; margin-top:15px;">
+                        <span style="font-size:12px; font-weight:700;">Horários:</span>
                         <div id="timeSlots"></div>
                     </div>
-                    
-                    <button class="btn btn-secondary" id="backToStep2" style="width: 100%; margin-top: 20px;">Voltar</button>
+                    <button class="modal-btn btn-back" onclick="goToStep(2)">Voltar</button>
                 </div>
 
                 <div id="step4" style="display:none;">
-                    <div id="confirmationDetails" style="margin-bottom: 20px;"></div>
+                    <span class="step-indicator">Passo 4 de 4</span>
+                    <h4 class="step-title">Finalizar</h4>
                     
-                    <form method="POST" action="salvar_agendamento.php" class="client-form">
+                    <form method="POST" action="salvar_agendamento.php">
                         <input type="hidden" name="barbeiro_id" id="confirmBarbeiroId">
                         <input type="hidden" name="servicos" id="confirmServicosIds">
                         <input type="hidden" name="data" id="confirmData">
                         <input type="hidden" name="hora" id="confirmHora">
                         <input type="hidden" name="valor_total" id="valorTotal">
-                        
-                        <input type="text" name="nome" class="form-control" placeholder="Seu Nome Completo" required>
-                        <input type="tel" name="telefone" class="form-control" placeholder="WhatsApp (41999999999)" required>
-                        <input type="email" name="email" class="form-control" placeholder="Seu E-mail" required>
-                        
-                        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                            <p style="font-weight: 600; margin-bottom: 10px;">Forma de Pagamento:</p>
-                            <label style="display: flex; gap: 10px; margin-bottom: 10px; cursor: pointer;">
+
+                        <input type="text" name="nome" placeholder="Nome Completo" required style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:6px;">
+                        <input type="tel" name="telefone" placeholder="WhatsApp (41...)" required style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:6px;">
+                        <input type="email" name="email" placeholder="E-mail" required style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:6px;">
+
+                        <div style="background:#f4f4f4; padding:15px; border-radius:6px; margin-bottom:15px;">
+                            <label style="display:flex; align-items:center; gap:10px; margin-bottom:10px; cursor:pointer;">
                                 <input type="radio" name="payment_method" value="presencial" checked> Pagar na Barbearia
                             </label>
-                            <label style="display: flex; gap: 10px; cursor: pointer;">
-                                <input type="radio" name="payment_method" value="pix"> Pagar agora (Pix/Cartão/MP)
+                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                                <input type="radio" name="payment_method" value="pix"> Pagar Online (Pix/Cartão)
                             </label>
                         </div>
 
-                        <div id="redirectInfo" style="display: none; margin: 20px 0; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 4px solid #2196f3;">
-                            <h4 style="margin-bottom: 10px; color: #0d47a1;">Pagamento Seguro</h4>
-                            <p style="font-size: 14px;">Você será redirecionado para a página do <strong>Mercado Pago</strong> para finalizar.</p>
-                            <p style="font-size: 14px;">Lá você poderá escolher: <strong>Pix, Cartão de Crédito ou Saldo.</strong></p>
+                        <div id="redirectInfo" style="display:none; padding:10px; background:#e3f2fd; border-left:3px solid #2196f3; font-size:12px; margin-bottom:15px; border-radius:4px;">
+                            Você será redirecionado para o <strong>Mercado Pago</strong> para finalizar o pagamento com segurança.
                         </div>
 
-                        <div class="navigation-buttons">
-                            <button type="button" class="btn btn-secondary" id="backToStep3">Voltar</button>
-                            <button type="submit" class="btn">Confirmar</button>
-                        </div>
+                        <button type="submit" class="modal-btn btn-next">Confirmar Agendamento</button>
+                        <button type="button" class="modal-btn btn-back" onclick="goToStep(3)">Voltar</button>
                     </form>
                 </div>
             </div>
@@ -556,166 +609,92 @@ session_start();
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Menu Mobile
-        const menuToggle = document.querySelector('.menu-toggle');
-        const nav = document.querySelector('nav');
-        menuToggle.addEventListener('click', () => {
-            nav.classList.toggle('active');
-        });
+        const modal = document.getElementById('bookingModal');
+        const openBtns = [document.getElementById('bookNowHero'), document.getElementById('bookNowServices')];
+        let currentBarber, currentServices = [], currentPrice = 0, currentDuration = 0;
 
-        // Variáveis do Agendamento
-        let selectedBarber, selectedServices = [], totalPrice = 0, totalDuration = 0;
-
-        // Abrir Modal
-        const openModalBtns = [document.getElementById('bookNowHero'), document.getElementById('bookNowServices')];
-        openModalBtns.forEach(btn => {
-            if(btn) btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                document.getElementById('bookingModal').style.display = 'block';
-                resetBooking();
-            });
-        });
-
-        // Fechar Modal
-        document.querySelector('.close-booking').addEventListener('click', () => {
-            document.getElementById('bookingModal').style.display = 'none';
-        });
-
-        function resetBooking() {
-            selectedBarber = null; selectedServices = []; totalPrice = 0; totalDuration = 0;
-            document.querySelectorAll('.barber-option').forEach(el => el.classList.remove('selected'));
-            document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
-            updatePrice();
-            goToStep(1);
-        }
+        openBtns.forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); modal.style.display = 'block'; goToStep(1); }));
+        document.querySelector('.close-booking').addEventListener('click', () => modal.style.display = 'none');
+        document.querySelector('.menu-toggle').addEventListener('click', () => document.querySelector('nav').classList.toggle('active')); // Menu Mobile
 
         function goToStep(step) {
-            [1, 2, 3, 4].forEach(s => document.getElementById(`step${s}`).style.display = 'none');
+            document.querySelectorAll('[id^="step"]').forEach(el => el.style.display = 'none');
             document.getElementById(`step${step}`).style.display = 'block';
         }
 
-        // Lógica Passo 1: Barbeiro
+        // Lógica Passo 1
         document.querySelectorAll('.barber-option').forEach(opt => {
             opt.addEventListener('click', function() {
-                document.querySelectorAll('.barber-option').forEach(el => el.classList.remove('selected'));
+                document.querySelectorAll('.barber-option').forEach(o => o.classList.remove('selected'));
                 this.classList.add('selected');
-                selectedBarber = this.getAttribute('data-barber');
+                currentBarber = this.dataset.barber;
                 goToStep(2);
             });
         });
 
-        // Lógica Passo 2: Serviços
-        document.querySelectorAll('.service-option input').forEach(chk => {
+        // Lógica Passo 2
+        document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
             chk.addEventListener('change', function() {
-                const price = parseFloat(this.getAttribute('data-price'));
-                const duration = parseInt(this.getAttribute('data-duration'));
-                const id = this.getAttribute('data-service');
-                
-                if(this.checked) {
-                    selectedServices.push(id);
-                    totalPrice += price;
-                    totalDuration += duration;
-                } else {
-                    selectedServices = selectedServices.filter(s => s !== id);
-                    totalPrice -= price;
-                    totalDuration -= duration;
-                }
-                updatePrice();
+                const price = parseFloat(this.dataset.price);
+                const duration = parseInt(this.dataset.duration);
+                const id = this.dataset.service;
+                if(this.checked) { currentServices.push(id); currentPrice += price; currentDuration += duration; }
+                else { currentServices = currentServices.filter(s => s !== id); currentPrice -= price; currentDuration -= duration; }
+                document.getElementById('totalPrice').innerText = `R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
             });
         });
-
-        function updatePrice() {
-            document.getElementById('totalPrice').innerText = `R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
-        }
-
-        document.getElementById('backToStep1').addEventListener('click', () => goToStep(1));
         document.getElementById('nextToStep3').addEventListener('click', () => {
-            if(selectedServices.length === 0) return alert('Selecione ao menos um serviço.');
+            if(currentServices.length === 0) return alert('Selecione pelo menos um serviço.');
             goToStep(3);
-            setupDate();
         });
 
-        // Lógica Passo 3: Data e Hora
-        function setupDate() {
-            const dateInput = document.getElementById('appointmentDate');
-            dateInput.addEventListener('change', function() {
-                if(!this.value) return;
-                const container = document.getElementById('timeSlots');
-                container.innerHTML = 'Carregando...';
-                
-                fetch(`get_horarios.php?barbeiro_id=${selectedBarber}&data=${this.value}&duracao=${totalDuration}`)
-                .then(r => r.json())
-                .then(times => {
-                    container.innerHTML = '';
-                    if(!times.length) container.innerHTML = 'Sem horários livres.';
-                    times.forEach(time => {
-                        const btn = document.createElement('div');
-                        btn.className = 'time-slot';
-                        btn.innerText = time;
-                        btn.onclick = () => confirmTime(this.value, time);
-                        container.appendChild(btn);
-                    });
+        // Lógica Passo 3
+        const dateInput = document.getElementById('appointmentDate');
+        dateInput.addEventListener('change', function() {
+            if(!this.value) return;
+            const container = document.getElementById('timeSlots');
+            document.getElementById('timeSlotsContainer').style.display = 'block';
+            container.innerHTML = 'Carregando...';
+            fetch(`get_horarios.php?barbeiro_id=${currentBarber}&data=${this.value}&duracao=${currentDuration}`)
+            .then(r => r.json())
+            .then(times => {
+                container.innerHTML = '';
+                if(!times.length) container.innerHTML = '<span style="color:red; grid-column:1/-1;">Sem horários.</span>';
+                times.forEach(t => {
+                    const btn = document.createElement('div'); btn.className = 'time-slot'; btn.innerText = t;
+                    btn.onclick = () => {
+                        document.getElementById('confirmBarbeiroId').value = currentBarber;
+                        document.getElementById('confirmServicosIds').value = currentServices.join(',');
+                        document.getElementById('confirmData').value = dateInput.value;
+                        document.getElementById('confirmHora').value = t;
+                        document.getElementById('valorTotal').value = currentPrice;
+                        goToStep(4);
+                    };
+                    container.appendChild(btn);
                 });
             });
-        }
+        });
 
-        function confirmTime(date, time) {
-            document.getElementById('confirmBarbeiroId').value = selectedBarber;
-            document.getElementById('confirmServicosIds').value = selectedServices.join(',');
-            document.getElementById('confirmData').value = date;
-            document.getElementById('confirmHora').value = time;
-            document.getElementById('valorTotal').value = totalPrice;
-
-            // Preenche o resumo visual
-            document.getElementById('confirmationDetails').innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #eee;"><span>Data:</span> <strong>${date.split('-').reverse().join('/')} às ${time}</strong></div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #eee;"><span>Serviços:</span> <strong>${selectedServices.length} selecionados</strong></div>
-                <div class="confirmation-total">Total: R$ ${totalPrice.toFixed(2).replace('.', ',')}</div>
-            `;
-            goToStep(4);
-        }
-
-        // Lógica de Pagamento e Redirecionamento
+        // Lógica Passo 4 (Aviso Redirecionamento)
         document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const redirectInfo = document.getElementById('redirectInfo');
-                
                 if (this.value === 'pix') {
                     redirectInfo.style.display = 'block';
-                    
-                    // Simulação visual de desconto
-                    const discountedPrice = totalPrice * 0.95; 
-                    document.getElementById('valorTotal').value = discountedPrice;
-                    document.querySelector('.confirmation-total').innerHTML = 
-                        `Total: <span style="text-decoration: line-through; font-size: 0.8em; color: #999;">R$ ${totalPrice.toFixed(2).replace('.', ',')}</span> 
-                        R$ ${discountedPrice.toFixed(2).replace('.', ',')}`;
+                    // Desconto visual de 5%
+                    const discPrice = currentPrice * 0.95;
+                    document.getElementById('valorTotal').value = discPrice;
                 } else {
                     redirectInfo.style.display = 'none';
-                    document.getElementById('valorTotal').value = totalPrice;
-                    document.querySelector('.confirmation-total').innerHTML = 
-                        `Total: R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
+                    document.getElementById('valorTotal').value = currentPrice;
                 }
             });
         });
 
-        document.getElementById('backToStep2').addEventListener('click', () => goToStep(2));
-        document.getElementById('backToStep3').addEventListener('click', () => goToStep(3));
-    });
-
-    // Função Alerta
-    function showAlert(message, type) {
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type}`;
-        alert.innerHTML = message;
-        document.body.appendChild(alert);
-        setTimeout(() => alert.remove(), 3500);
-    }
-
-    // Verificar mensagens na URL
-    const urlParams = new URLSearchParams(window.location.search);
-    if(urlParams.get('agendamento') === 'sucesso') showAlert(urlParams.get('mensagem'), 'success');
-    if(urlParams.get('agendamento') === 'erro') showAlert(urlParams.get('mensagem'), 'error');
+        // Alertas
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('agendamento') === 'sucesso') alert(urlParams.get('mensagem'));
+        if(urlParams.get('agendamento') === 'erro') alert(urlParams.get('mensagem'));
     </script>
 </body>
 </html>

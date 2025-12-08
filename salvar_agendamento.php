@@ -1,10 +1,12 @@
 <?php
+session_start(); // INICIAR SESSÃO É OBRIGATÓRIO PARA PEGAR O ID DO CLIENTE
 require 'db_connection.php';
 require 'envia_email.php';
 
-// ATENÇÃO: Configure a URL base do seu site aqui para o Webhook funcionar
-// Em produção mude para https://seusite.com.br
-define('BASE_URL', 'https://legacystyle.com.br'); 
+// Detecta automaticamente a URL para o Webhook (Funciona no Local e na Hostinger)
+$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+$base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
+define('NOTIFICATION_URL', $base_url . '/notificacao.php');
 
 date_default_timezone_set('America/Sao_Paulo');
 
@@ -14,40 +16,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $servicos_ids = filter_input(INPUT_POST, 'servicos', FILTER_SANITIZE_STRING);
     $data = filter_input(INPUT_POST, 'data', FILTER_SANITIZE_STRING);
     $hora = filter_input(INPUT_POST, 'hora', FILTER_SANITIZE_STRING);
+    
     $nome_cliente = filter_input(INPUT_POST, 'nome', FILTER_SANITIZE_STRING);
     $telefone = filter_input(INPUT_POST, 'telefone', FILTER_SANITIZE_STRING);
     $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+    
     $metodo_pagamento = filter_input(INPUT_POST, 'payment_method', FILTER_SANITIZE_STRING) ?? 'presencial';
     $valor_final = filter_input(INPUT_POST, 'valor_total', FILTER_VALIDATE_FLOAT);
 
-    $erros = [];
-    if (!$barbeiro_id) $erros[] = "Barbeiro inválido.";
-    if (!$servicos_ids) $erros[] = "Nenhum serviço selecionado.";
-    if (!$data || !$hora) $erros[] = "Data ou hora inválida.";
-    if (!$nome_cliente || !$telefone || !$email) $erros[] = "Preencha os dados de contato.";
+    // --- CORREÇÃO: Pegar o ID do cliente se ele estiver logado ---
+    $id_cliente = isset($_SESSION['cliente_id']) ? $_SESSION['cliente_id'] : null;
 
-    if (!empty($erros)) {
-        header("Location: index.php?agendamento=erro&mensagem=" . urlencode(implode(", ", $erros)));
-        exit;
+    if (!$barbeiro_id || !$servicos_ids || !$data || !$hora || !$email) {
+        die("Erro: Dados incompletos. Por favor, volte e preencha tudo.");
     }
 
     try {
         $pdo->beginTransaction();
 
-        // 2. Verificar disponibilidade
-        $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM agendamentos WHERE id_barbeiro = ? AND data = ? AND hora = ?");
-        $stmtCheck->execute([$barbeiro_id, $data, $hora]);
-        if ($stmtCheck->fetchColumn() > 0) {
-            throw new Exception("Horário já reservado.");
-        }
-
-        // 3. Buscar Token do Barbeiro e calcular tempo
-        // Buscamos o nome e o TOKEN do barbeiro específico
+        // 2. Buscar Token do Barbeiro
         $stmtBarbeiro = $pdo->prepare("SELECT nome, mp_access_token FROM barbeiros WHERE id = ?");
         $stmtBarbeiro->execute([$barbeiro_id]);
         $barbeiro_dados = $stmtBarbeiro->fetch();
 
-        if (!$barbeiro_dados) throw new Exception("Barbeiro não encontrado.");
+        if (!$barbeiro_dados) die("Erro: Barbeiro não encontrado.");
         
         $barbeiro_nome = $barbeiro_dados['nome'];
         $access_token = $barbeiro_dados['mp_access_token'];
@@ -67,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $lista_servicos_texto = implode(", ", $nomes_servicos);
 
-        // --- INTEGRAÇÃO DINÂMICA MERCADO PAGO ---
+        // --- INTEGRAÇÃO MERCADO PAGO ---
         $mp_id = null;
         $qr_code_base64 = null;
         $qr_code_copia_cola = null;
@@ -76,16 +68,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($metodo_pagamento === 'pix') {
             
             if (empty($access_token)) {
-                throw new Exception("Erro: O barbeiro $barbeiro_nome não configurou o Mercado Pago.");
+                die("Erro Fatal: O barbeiro $barbeiro_nome não configurou o Mercado Pago.");
             }
 
-            // O segredo está aqui: Passamos o ID do barbeiro na URL de notificação
-            // Assim, quando o MP avisar, saberemos de quem é a conta.
-            $webhook_url = BASE_URL . "/notificacao.php?barbeiro_id=" . $barbeiro_id;
+            // Webhook dinâmico
+            $webhook_target = NOTIFICATION_URL . "?barbeiro_id=" . $barbeiro_id;
 
             $dados_mp = [
                 "transaction_amount" => (float)$valor_final,
-                "description" => "Corte com $barbeiro_nome - Legacy Style",
+                "description" => "Corte Legacy - " . $lista_servicos_texto,
                 "payment_method_id" => "pix",
                 "payer" => [
                     "email" => $email,
@@ -93,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "last_name" => explode(' ', $nome_cliente)[1] ?? 'Cliente',
                     "identification" => ["type" => "CPF", "number" => "19119119100"]
                 ],
-                "notification_url" => $webhook_url
+                "notification_url" => $webhook_target
             ];
 
             $curl = curl_init();
@@ -104,46 +95,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 CURLOPT_POSTFIELDS => json_encode($dados_mp),
                 CURLOPT_HTTPHEADER => [
                     'Content-Type: application/json',
-                    'Authorization: Bearer ' . $access_token, // Usa o token do barbeiro específico!
+                    'Authorization: Bearer ' . $access_token,
                     'X-Idempotency-Key: ' . uniqid()
                 ],
+                // Desativa verificação SSL para funcionar no XAMPP (Localhost)
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false
             ]);
 
             $response = curl_exec($curl);
             $err = curl_error($curl);
             curl_close($curl);
 
-            if ($err) throw new Exception("Erro MP: " . $err);
+            if ($err) die("Erro cURL: " . $err);
 
             $mp_resposta = json_decode($response, true);
 
             if (isset($mp_resposta['id'])) {
                 $mp_id = $mp_resposta['id'];
                 $status_inicial = $mp_resposta['status'];
-                $qr_code_base64 = $mp_resposta['point_of_interaction']['transaction_data']['qr_code_base64'];
-                $qr_code_copia_cola = $mp_resposta['point_of_interaction']['transaction_data']['qr_code'];
+                
+                if(isset($mp_resposta['point_of_interaction']['transaction_data']['qr_code_base64'])) {
+                    $qr_code_base64 = $mp_resposta['point_of_interaction']['transaction_data']['qr_code_base64'];
+                    $qr_code_copia_cola = $mp_resposta['point_of_interaction']['transaction_data']['qr_code'];
+                }
             } else {
-                $erro_msg = $mp_resposta['message'] ?? 'Erro desconhecido ao gerar PIX';
-                throw new Exception("Falha MP: " . $erro_msg);
+                // Se der erro no MP, mostra na tela para você saber o que foi
+                echo "<h3>Erro do Mercado Pago:</h3>";
+                echo "<pre>"; print_r($mp_resposta); echo "</pre>";
+                die();
             }
         }
-        // -------------------------------
 
-        // 4. Salvar no Banco
+        // 4. Inserir no Banco (AGORA COM ID_CLIENTE!)
         $sql = "INSERT INTO agendamentos 
-                (id_barbeiro, servicos_ids, nome_cliente, telefone, email, data, hora, duracao, valor_final, metodo_pagamento, status, mp_id, mp_status, qr_code_base64, qr_code_copia_cola) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                (id_barbeiro, id_cliente, servicos_ids, nome_cliente, telefone, email, data, hora, duracao, valor_final, metodo_pagamento, status, mp_id, mp_status, qr_code_base64, qr_code_copia_cola) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            $barbeiro_id, $servicos_ids, $nome_cliente, $telefone, $email, $data, $hora, 
-            $duracao_total, $valor_final, $metodo_pagamento, $status_inicial, 
-            $mp_id, $status_inicial, $qr_code_base64, $qr_code_copia_cola
+            $barbeiro_id,
+            $id_cliente, // Aqui entra o ID da sessão!
+            $servicos_ids,
+            $nome_cliente,
+            $telefone,
+            $email,
+            $data,
+            $hora,
+            $duracao_total,
+            $valor_final,
+            $metodo_pagamento,
+            $status_inicial, 
+            $mp_id,
+            $status_inicial,
+            $qr_code_base64,
+            $qr_code_copia_cola
         ]);
 
         $id_agendamento = $pdo->lastInsertId();
 
-        // 5. Enviar Email
+        // 5. Email
         $dadosEmail = [
             'id' => $id_agendamento,
             'nome_cliente' => $nome_cliente,
@@ -154,7 +165,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'servicos' => $lista_servicos_texto,
             'status_pagamento' => ($metodo_pagamento === 'pix') ? 'Aguardando Pagamento' : 'Pagar no Local'
         ];
-
         try { enviarEmailConfirmacao($dadosEmail); } catch (Exception $e) {}
 
         $pdo->commit();
@@ -168,8 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } catch (Exception $e) {
         $pdo->rollBack();
-        header("Location: index.php?agendamento=erro&mensagem=" . urlencode("Erro: " . $e->getMessage()));
-        exit;
+        die("Erro no Sistema: " . $e->getMessage());
     }
 }
 ?>

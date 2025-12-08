@@ -1243,7 +1243,6 @@ session_start(); // Para guardar temporariamente os dados do agendamento
                         <div class="social-links">
                             <a href="#" class="whatsapp-link" data-barber="caua"><i class="fab fa-whatsapp"></i></a>
                             <a href="https://www.instagram.com/silva__barbeer/?hl=en"><i class="fab fa-instagram"></i></a>
-                            <a href="#"><i class="fab fa-facebook"></i></a>
                         </div>
                         <a href="caua.php" class="btn" style="margin-top: 15px; display: inline-block;">Ver Perfil</a>
                     </div>
@@ -1259,7 +1258,6 @@ session_start(); // Para guardar temporariamente os dados do agendamento
                         <div class="social-links">
                             <a href="#" class="whatsapp-link" data-barber="vitinho"><i class="fab fa-whatsapp"></i></a>
                             <a href="https://www.instagram.com/ovitinhobarber/?hl=en"><i class="fab fa-instagram"></i></a>
-                            <a href="#"><i class="fab fa-facebook"></i></a>
                         </div>
                         <a href="vitinho.php" class="btn" style="margin-top: 15px; display: inline-block;">Ver Perfil</a>
                     </div>

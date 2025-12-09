@@ -309,6 +309,28 @@ session_start();
         .time-slot { background: #f9f9f9; border: 1px solid #ddd; padding: 10px; border-radius: 6px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; }
         .time-slot:hover, .time-slot.selected { background: var(--secondary); color: #000; border-color: var(--secondary); }
         .service-check-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .hero {
+            position: relative;
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            padding-top: 80px;
+            overflow: hidden;
+        }
+        .hero .hero-media { position: absolute; inset: 0; z-index: 0; }
+        .hero .hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+        .hero .hero-overlay { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.5)); z-index: 1; }
+        .hero .hero-content { position: relative; z-index: 2; padding: 60px 15px; max-width: 1100px; }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(32px, 6vw, 60px); margin-bottom: 20px; line-height: 1.1; }
+        .hero p { font-size: clamp(14px, 2.2vw, 20px); margin-bottom: 40px; color: #ddd; max-width: 700px; margin-left: auto; margin-right: auto; }
+        @media (prefers-reduced-motion: reduce) { .hero .hero-media img { transition: none !important; } }
+        @media (max-width: 480px) {
+            .hero { min-height: 55vh; padding-top: 70px; }
+            .hero .hero-content { padding: 40px 12px; }
+        }
     </style>
 </head>
 <body>

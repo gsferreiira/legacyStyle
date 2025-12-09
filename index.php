@@ -412,7 +412,6 @@ session_start();
                 <?php endforeach; ?>
             </div>
             <div class="text-center" style="margin-top: 50px;">
-                <a href="#" class="btn" id="bookNowServices">Agendar Agora</a>
             </div>
         </div>
     </section>
@@ -436,8 +435,8 @@ session_start();
                         <h3><?= $b['nome'] ?></h3>
                         <span><?= $b['especialidade'] ?></span>
                         <div class="social-icons">
-                            <a href="#"><i class="fab fa-instagram"></i></a>
-                            <a href="#"><i class="fab fa-whatsapp"></i></a>
+                            <a href="#" aria-label="Instagram <?= htmlspecialchars($b['nome']) ?>"><i class="fab fa-instagram"></i></a>
+                            <a href="#" aria-label="WhatsApp <?= htmlspecialchars($b['nome']) ?>"><i class="fab fa-whatsapp"></i></a>
                         </div>
                         <a href="<?= $b['id'] == 1 ? 'caua.php' : 'vitinho.php' ?>" class="btn btn-outline" style="margin-top: 20px; padding: 10px 20px; font-size: 12px;">Ver Perfil</a>
                     </div>
@@ -515,13 +514,13 @@ session_start();
         </div>
     </footer>
 
-    <a href="https://wa.me/5541999888727" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+    <a href="https://wa.me/5541999888727" class="whatsapp-float" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i></a>
 
     <div class="booking-modal" id="bookingModal">
         <div class="booking-content">
             <div class="booking-header">
                 <h3>Agendar Horário</h3>
-                <span class="close-booking">&times;</span>
+                <span class="close-booking" role="button" aria-label="Fechar">&times;</span>
             </div>
             <div class="booking-body">
                 <div id="step1">
@@ -530,7 +529,7 @@ session_start();
                     <div class="barber-selection">
                         <?php foreach($barbeiros as $b): ?>
                         <div class="option-card barber-option" data-barber="<?= $b['id'] ?>">
-                            <img src="assets/<?= $b['foto'] ?>">
+                            <img src="assets/<?= $b['foto'] ?>" alt="<?= htmlspecialchars($b['nome']) ?>">
                             <div>
                                 <h4 style="margin:0; font-size:16px; font-weight:700; color:#333;"><?= $b['nome'] ?></h4>
                                 <span style="font-size:12px; color:#777;"><?= $b['especialidade'] ?></span>
@@ -612,92 +611,170 @@ session_start();
     </div>
 
     <script>
+        // seletor seguro e inicializações
         const modal = document.getElementById('bookingModal');
-        const openBtns = [document.getElementById('bookNowHero'), document.getElementById('bookNowServices')];
-        let currentBarber, currentServices = [], currentPrice = 0, currentDuration = 0;
+        const openBtns = [document.getElementById('bookNowHero'), document.getElementById('bookNowServices')].filter(Boolean);
+        let currentBarber = null;
+        let currentServices = [];
+        let currentPrice = 0;
+        let currentDuration = 0;
 
-        openBtns.forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); modal.style.display = 'block'; goToStep(1); }));
-        document.querySelector('.close-booking').addEventListener('click', () => modal.style.display = 'none');
-        document.querySelector('.menu-toggle').addEventListener('click', () => document.querySelector('nav').classList.toggle('active')); // Menu Mobile
+        function openModal() {
+            if (!modal) return;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            goToStep(1);
+        }
+
+        function closeModal() {
+            if (!modal) return;
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        openBtns.forEach(btn => btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal();
+        }));
+
+        const closeBtn = document.querySelector('.close-booking');
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+        // fecha ao clicar fora do conteúdo
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        }
+
+        // fecha com Esc
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+        // Menu mobile safe
+        const menuToggle = document.querySelector('.menu-toggle');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                const nav = document.querySelector('nav');
+                if (nav) nav.classList.toggle('active');
+            });
+        }
 
         function goToStep(step) {
             document.querySelectorAll('[id^="step"]').forEach(el => el.style.display = 'none');
-            document.getElementById(`step${step}`).style.display = 'block';
+            const target = document.getElementById(`step${step}`);
+            if (target) target.style.display = 'block';
         }
 
-        // Lógica Passo 1
-        document.querySelectorAll('.barber-option').forEach(opt => {
+        // Passo 1 - barbeiros (proteção se não houver elementos)
+        const barberOptions = document.querySelectorAll('.barber-option') || [];
+        barberOptions.forEach(opt => {
             opt.addEventListener('click', function() {
-                document.querySelectorAll('.barber-option').forEach(o => o.classList.remove('selected'));
+                barberOptions.forEach(o => o.classList.remove('selected'));
                 this.classList.add('selected');
-                currentBarber = this.dataset.barber;
+                currentBarber = this.dataset.barber || null;
                 goToStep(2);
             });
         });
 
-        // Lógica Passo 2
-        document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+        // Passo 2 - serviços (seletor seguro)
+        const serviceCheckboxes = document.querySelectorAll('input[type="checkbox"][data-service]') || [];
+        serviceCheckboxes.forEach(chk => {
             chk.addEventListener('change', function() {
-                const price = parseFloat(this.dataset.price);
-                const duration = parseInt(this.dataset.duration);
-                const id = this.dataset.service;
-                if(this.checked) { currentServices.push(id); currentPrice += price; currentDuration += duration; }
-                else { currentServices = currentServices.filter(s => s !== id); currentPrice -= price; currentDuration -= duration; }
-                document.getElementById('totalPrice').innerText = `R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
+                const price = parseFloat(this.dataset.price) || 0;
+                const duration = parseInt(this.dataset.duration) || 0;
+                const id = String(this.dataset.service || '');
+                if (this.checked) {
+                    if (!currentServices.includes(id)) currentServices.push(id);
+                    currentPrice += price;
+                    currentDuration += duration;
+                } else {
+                    currentServices = currentServices.filter(s => s !== id);
+                    currentPrice -= price;
+                    currentDuration -= duration;
+                }
+                const totalEl = document.getElementById('totalPrice');
+                if (totalEl) totalEl.innerText = `R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
             });
         });
-        document.getElementById('nextToStep3').addEventListener('click', () => {
-            if(currentServices.length === 0) return alert('Selecione pelo menos um serviço.');
-            goToStep(3);
-        });
 
-        // Lógica Passo 3
+        const nextToStep3 = document.getElementById('nextToStep3');
+        if (nextToStep3) {
+            nextToStep3.addEventListener('click', () => {
+                if (currentServices.length === 0) return alert('Selecione pelo menos um serviço.');
+                if (!currentBarber) return alert('Selecione um profissional.');
+                goToStep(3);
+            });
+        }
+
+        // Passo 3 - data e horários
         const dateInput = document.getElementById('appointmentDate');
-        dateInput.addEventListener('change', function() {
-            if(!this.value) return;
-            const container = document.getElementById('timeSlots');
-            document.getElementById('timeSlotsContainer').style.display = 'block';
-            container.innerHTML = 'Carregando...';
-            fetch(`get_horarios.php?barbeiro_id=${currentBarber}&data=${this.value}&duracao=${currentDuration}`)
-            .then(r => r.json())
-            .then(times => {
-                container.innerHTML = '';
-                if(!times.length) container.innerHTML = '<span style="color:red; grid-column:1/-1;">Sem horários.</span>';
-                times.forEach(t => {
-                    const btn = document.createElement('div'); btn.className = 'time-slot'; btn.innerText = t;
-                    btn.onclick = () => {
-                        document.getElementById('confirmBarbeiroId').value = currentBarber;
-                        document.getElementById('confirmServicosIds').value = currentServices.join(',');
-                        document.getElementById('confirmData').value = dateInput.value;
-                        document.getElementById('confirmHora').value = t;
-                        document.getElementById('valorTotal').value = currentPrice;
-                        goToStep(4);
-                    };
-                    container.appendChild(btn);
+        if (dateInput) {
+            dateInput.addEventListener('change', function() {
+                if (!this.value) return;
+                const container = document.getElementById('timeSlots');
+                const containerWrap = document.getElementById('timeSlotsContainer');
+                if (containerWrap) containerWrap.style.display = 'block';
+                if (!container) return;
+                container.innerHTML = 'Carregando...';
+                const barberId = encodeURIComponent(currentBarber || '');
+                const data = encodeURIComponent(this.value);
+                const dur = encodeURIComponent(currentDuration || 0);
+                fetch(`get_horarios.php?barbeiro_id=${barberId}&data=${data}&duracao=${dur}`)
+                .then(r => r.json())
+                .then(times => {
+                    container.innerHTML = '';
+                    if (!Array.isArray(times) || times.length === 0) {
+                        container.innerHTML = '<span style="color:red; grid-column:1/-1;">Sem horários.</span>';
+                        return;
+                    }
+                    times.forEach(t => {
+                        const btn = document.createElement('div'); btn.className = 'time-slot'; btn.innerText = t;
+                        btn.onclick = () => {
+                            const confirmBarb = document.getElementById('confirmBarbeiroId');
+                            const confirmServ = document.getElementById('confirmServicosIds');
+                            const confirmData = document.getElementById('confirmData');
+                            const confirmHora = document.getElementById('confirmHora');
+                            const valorTotal = document.getElementById('valorTotal');
+                            if (confirmBarb) confirmBarb.value = currentBarber || '';
+                            if (confirmServ) confirmServ.value = currentServices.join(',');
+                            if (confirmData) confirmData.value = dateInput.value;
+                            if (confirmHora) confirmHora.value = t;
+                            if (valorTotal) valorTotal.value = currentPrice;
+                            goToStep(4);
+                        };
+                        container.appendChild(btn);
+                    });
+                })
+                .catch(() => {
+                    container.innerHTML = '<span style="color:red;">Erro ao carregar horários.</span>';
                 });
             });
-        });
+        }
 
-        // Lógica Passo 4 (Aviso Redirecionamento)
+        // Passo 4 - método de pagamento
         document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const redirectInfo = document.getElementById('redirectInfo');
+                const valorTotal = document.getElementById('valorTotal');
                 if (this.value === 'pix') {
-                    redirectInfo.style.display = 'block';
-                    // Desconto visual de 5%
+                    if (redirectInfo) redirectInfo.style.display = 'block';
                     const discPrice = currentPrice * 0.95;
-                    document.getElementById('valorTotal').value = discPrice;
+                    if (valorTotal) valorTotal.value = discPrice;
                 } else {
-                    redirectInfo.style.display = 'none';
-                    document.getElementById('valorTotal').value = currentPrice;
+                    if (redirectInfo) redirectInfo.style.display = 'none';
+                    if (valorTotal) valorTotal.value = currentPrice;
                 }
             });
         });
 
-        // Alertas
-        const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.get('agendamento') === 'sucesso') alert(urlParams.get('mensagem'));
-        if(urlParams.get('agendamento') === 'erro') alert(urlParams.get('mensagem'));
+        // Mensagens via URL (seguro)
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('agendamento') === 'sucesso' && urlParams.get('mensagem')) alert(urlParams.get('mensagem'));
+            if (urlParams.get('agendamento') === 'erro' && urlParams.get('mensagem')) alert(urlParams.get('mensagem'));
+        } catch(e) {
+            // ignore
+        }
     </script>
 </body>
 </html>

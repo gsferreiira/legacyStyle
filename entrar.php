@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
 <body>
     <div class="container">
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="" alt="Legacy Style" style="height: 50px;">
+            <img src="assets/LOGO LEGACY SF/1.png" alt="Legacy Style" style="height: 50px;">
         </div>
 
         <?php if ($erro): ?>

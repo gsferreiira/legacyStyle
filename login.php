@@ -152,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="container">
         <div class="logo">
-            <img src="assets/LOGO LEGACY SF/2.png" alt="Legacy Style">
+            <img src="assets/LOGO LEGACY SF/1.png" alt="Legacy Style">
         </div>
 
         <h2>Área do Barbeiro</h2>

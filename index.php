@@ -212,16 +212,23 @@ session_start();
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             transition: 0.3s;
+            
         }
         .barber-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         .barber-img { height: 380px; overflow: hidden; background: #eee; position: relative; }
         .barber-img img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
         .barber-card:hover .barber-img img { transform: scale(1.05); }
+
+        .barbers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 50px;
+        }
         
         .barber-info { padding: 30px; text-align: center; }
         .barber-info h3 { font-size: 22px; margin-bottom: 5px; }
         .barber-info span { color: var(--secondary); font-size: 13px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 15px; }
-        .social-icons a { color: #333; margin: 0 5px; font-size: 18px; transition: 0.3s; }
+        .social-icons a { color: #333; margin: 0 5px; font-size: 18px; transition: 0.3s; text-decoration: none; list-style: none; }
         .social-icons a:hover { color: var(--secondary); }
 
         /* --- DEPOIMENTOS --- */
@@ -294,7 +301,7 @@ session_start();
         }
         
         /* Whats Flutuante */
-        .whatsapp-float { position: fixed; bottom: 25px; right: 25px; background: #25d366; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 2000; transition: 0.3s; }
+        .whatsapp-float { position: fixed; bottom: 25px; text-decoration: none; right: 25px; background: #25d366; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 2000; transition: 0.3s; }
         .whatsapp-float:hover { transform: scale(1.1); }
         
         /* Estilos extras para o modal */
@@ -308,7 +315,7 @@ session_start();
 
     <header>
         <div class="container header-content">
-            <a href="index.php" class="logo"><img src="assets/LOGO LEGACY SF/2.png" alt="Legacy"> LEGACY <span>STYLE</span></a>
+            <a href="login.php" class="logo"><img src="assets/LOGO LEGACY SF/2.png" alt="Legacy"> LEGACY <span>STYLE</span></a>
             <div class="menu-toggle"><i class="fas fa-bars"></i></div>
             <nav>
                 <ul>
@@ -334,7 +341,6 @@ session_start();
             <p>Descubra a melhor experiência em barbearia de Curitiba. Ambiente exclusivo, profissionais de elite e atendimento premium.</p>
             <div style="margin-top: 30px;">
                 <a href="#" class="btn" id="bookNowHero">Agendar Horário</a>
-                <a href="#about" class="btn btn-outline" style="margin-left: 15px; color: #fff; border-color: #fff;">Saber Mais</a>
             </div>
         </div>
     </section>
@@ -383,9 +389,6 @@ session_start();
                         <span>Avaliação Google</span>
                     </div>
                 </div>
-            </div>
-            <div class="about-image" style="flex:1;">
-                <img src="https://images.unsplash.com/photo-1503951914875-befbb649186f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Ferramentas de Barbeiro" style="width:100%; border-radius:10px; box-shadow: 0 15px 40px rgba(0,0,0,0.1);">
             </div>
         </div>
     </section>

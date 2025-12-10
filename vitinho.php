@@ -1,763 +1,329 @@
 <?php
 require 'db_connection.php';
+session_start();
+$barbeiro_id = 2; // ID DO VITINHO
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vitinho - Especialista em Degradês | Legacy Style</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Vitinho | Legacy Style</title>
+    <link rel="shortcut icon" href="assets/LOGO LEGACY SF/1.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <style>
-        :root {
-            --primary: #1a1a1a;
-            --secondary: #d4af37;
-            --light: #f5f5f5;
-            --dark: #121212;
-        }
+        /* (COPIE O MESMO ESTILO DO CAUÃ.PHP AQUI PARA MANTER O PADRÃO) */
+        :root { --gold: #d4af37; --black: #111; --white: #fff; --gray: #f9f9f9; }
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--white); color: #333; overflow-x: hidden; }
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f9f9f9;
-            color: #333;
-            line-height: 1.6;
-        }
-        
-        /* Header */
-        .header {
-            background-color: var(--primary);
-            color: white;
-            padding: 15px 0;
-            position: fixed;
-            width: 100%;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        header { background: rgba(0,0,0,0.95); padding: 20px 0; position: fixed; width: 100%; z-index: 1000; border-bottom: 1px solid #333; }
+        .container { width: 90%; max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-family: 'Playfair Display', serif; font-size: 24px; color: #fff; text-decoration: none; font-weight: 700; display: flex; gap:10px; align-items: center; }
+        .logo span { color: var(--gold); }
+        .logo img { height: 45px; }
+        .btn-back { color: #fff; text-decoration: none; font-size: 13px; text-transform: uppercase; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-back:hover { color: var(--gold); }
 
-        .header-content p {
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            text-decoration: none;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .logo span {
-            color: var(--secondary);
-        }
-        
-        .logo img {
-            height: 50px;
-            vertical-align: middle;
-        }
-        
-        .back-btn {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        /* Hero Section */
-        .barber-hero {
-            padding-top: 100px;
-            background: linear-gradient(135deg, rgba(26,26,26,0.9) 0%, rgba(26,26,26,0.7) 100%), url('assets/bg-vitinho.jpg');
-            background-size: cover;
-            background-position: center;
-            color: white;
-            text-align: center;
-            padding-bottom: 60px;
-        }
-        
-        .barber-hero-content {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        .barber-hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            color: var(--secondary);
-        }
-        
-        .barber-hero p {
-            font-size: 1.1rem;
-            margin-bottom: 25px;
-        }
-        
-        .barber-avatar {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 5px solid var(--secondary);
-            margin-bottom: 20px;
-        }
-        
-        .specialty-badge {
-            display: inline-block;
-            background-color: var(--secondary);
-            color: var(--primary);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-        
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .social-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: rgba(212, 175, 55, 0.2);
-            color: var(--secondary);
-            font-size: 18px;
-            transition: all 0.3s;
-        }
-        
-        .social-link:hover {
-            background-color: var(--secondary);
-            color: var(--primary);
-            transform: translateY(-3px);
-        }
-        
-        /* About Section */
-        .about-section {
-            padding: 60px 0;
-            background-color: white;
-        }
-        
-        .section-title {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .section-title h2 {
-            font-size: 2rem;
-            color: var(--primary);
-            position: relative;
-            display: inline-block;
-            padding-bottom: 10px;
-        }
-        
-        .section-title h2::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background-color: var(--secondary);
-        }
-        
-        .about-content {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 40px;
-            align-items: center;
-        }
-        
-        .about-text {
-            flex: 1;
-            min-width: 300px;
-        }
-        
-        .about-text h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-        
-        .about-text p {
-            margin-bottom: 15px;
-        }
-        
-        .skills {
-            margin-top: 20px;
-        }
-        
-        .skill-item {
-            margin-bottom: 15px;
-        }
-        
-        .skill-name {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        
-        .skill-bar {
-            height: 8px;
-            background-color: #eee;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .skill-progress {
-            height: 100%;
-            background-color: var(--secondary);
-            border-radius: 4px;
-        }
-        
-        .about-image {
-            flex: 1;
-            min-width: 300px;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        
-        .about-image img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        
-        /* Portfolio Section */
-        .portfolio-section {
-            padding: 60px 0;
-            background-color: var(--light);
-        }
-        
-        .portfolio-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .portfolio-item {
-            position: relative;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-        }
-        
-        .portfolio-item:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-        }
-        
-        .portfolio-image {
-            width: 100%;
-            height: 300px;
-            object-fit: cover;
-        }
-        
-        .portfolio-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(26,26,26,0.9) 0%, transparent 100%);
-            padding: 20px;
-            color: white;
-            transform: translateY(100%);
-            transition: all 0.3s;
-        }
-        
-        .portfolio-item:hover .portfolio-overlay {
-            transform: translateY(0);
-        }
-        
-        .portfolio-title {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-        }
-        
-        .portfolio-category {
-            color: var(--secondary);
-            font-size: 0.9rem;
-        }
-        
-        /* Video Section */
-        .video-section {
-            padding: 60px 0;
-            background-color: white;
-            text-align: center;
-        }
-        
-        .video-container {
-            max-width: 800px;
-            margin: 0 auto;
-            position: relative;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        
-        .video-container video {
-            width: 100%;
-            display: block;
-        }
-        
-        /* Testimonials Section */
-        .testimonials-section {
-            padding: 60px 0;
-            background-color: var(--light);
-        }
-        
-        .testimonials-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-        
-        .testimonial-card {
-            background-color: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        
-        .testimonial-text {
-            font-style: italic;
-            margin-bottom: 20px;
-            position: relative;
-        }
-        
-        .testimonial-text::before {
-            content: '"';
-            font-size: 60px;
-            color: var(--secondary);
-            opacity: 0.2;
-            position: absolute;
-            top: -20px;
-            left: -10px;
-        }
-        
-        .testimonial-author {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .author-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        
-        .author-info h4 {
-            margin-bottom: 5px;
-            color: var(--primary);
-        }
-        
-        .author-info p {
-            color: #777;
-            font-size: 0.9rem;
-        }
-        
-        /* CTA Section */
-        .cta-section {
-            padding: 80px 0;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--dark) 100%);
-            color: white;
-            text-align: center;
-        }
-        
-        .cta-content {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        .cta-title {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: var(--secondary);
-        }
-        
-        .cta-text {
-            margin-bottom: 30px;
-        }
-        
-        .btn {
-            display: inline-block;
-            background-color: var(--secondary);
-            color: var(--primary);
-            padding: 12px 30px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .btn:hover {
-            background-color: white;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .btn-whatsapp {
-            background-color: #25D366;
-            color: white;
-        }
-        
-        .btn-whatsapp:hover {
-            background-color: #1da851;
-            color: white;
-        }
-        
-        /* Footer */
-        .footer {
-            background-color: var(--primary);
-            color: white;
-            padding: 30px 0;
-            text-align: center;
-        }
-        
-        .footer-content p {
-            margin-bottom: 15px;
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .footer-links a:hover {
-            color: var(--secondary);
-        }
-        
-        .social-links-footer {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .social-links-footer a {
-            color: white;
-            font-size: 20px;
-            transition: color 0.3s;
-        }
-        
-        .social-links-footer a:hover {
-            color: var(--secondary);
-        }
-        
-        .copyright {
-            color: #aaa;
-            font-size: 0.9rem;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .barber-hero h1 {
-                font-size: 2rem;
-            }
-            
-            .about-content {
-                flex-direction: column;
-            }
-            
-            .portfolio-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .testimonials-grid {
-                grid-template-columns: 1fr;
-            }
+        .profile-hero { padding-top: 140px; padding-bottom: 80px; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); color: #fff; }
+        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .hero-info h1 { font-family: 'Playfair Display', serif; font-size: 56px; line-height: 1.1; margin-bottom: 10px; }
+        .hero-role { color: var(--gold); font-size: 14px; text-transform: uppercase; letter-spacing: 3px; font-weight: 700; display: block; margin-bottom: 30px; }
+        .hero-bio { color: #ccc; font-size: 16px; line-height: 1.8; margin-bottom: 40px; }
+        
+        .stats-row { display: flex; gap: 40px; border-top: 1px solid #333; padding-top: 30px; margin-bottom: 40px; }
+        .stat strong { display: block; font-size: 32px; color: #fff; font-family: 'Playfair Display', serif; }
+        .stat small { color: var(--gold); text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
+
+        .hero-img-box { position: relative; text-align: center; }
+        .hero-img-box img { width: 100%; max-width: 450px; border-radius: 12px; box-shadow: 20px 20px 0 var(--gold); filter: grayscale(100%); transition: 0.5s; }
+        .hero-img-box img:hover { filter: grayscale(0%); transform: translateY(-5px); box-shadow: 25px 25px 0 rgba(212,175,55,0.5); }
+
+        .btn-cta { background: var(--gold); color: #000; padding: 18px 40px; font-weight: 700; text-transform: uppercase; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; transition:0.3s; font-size: 14px; display: inline-block; }
+        .btn-cta:hover { transform: translateY(-5px); background: #fff; }
+
+        .skills-section { padding: 100px 0; background: #fff; }
+        .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
+        .section-title h2 { font-family: 'Playfair Display', serif; font-size: 36px; margin-bottom: 20px; color: #111; }
+        .section-title p { color: #666; margin-bottom: 30px; }
+        
+        .skill-item { margin-bottom: 25px; }
+        .skill-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 700; font-size: 14px; text-transform: uppercase; }
+        .progress-bar { width: 100%; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+        .progress { height: 100%; background: var(--gold); width: 0; transition: width 1.5s ease-in-out; }
+
+        .portfolio { padding: 100px 0; background: var(--gray); }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 40px; }
+        .gallery-item { height: 350px; overflow: hidden; border-radius: 8px; position: relative; cursor: pointer; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .gallery-item:hover img { transform: scale(1.1); filter: brightness(60%); }
+        .overlay { position: absolute; bottom: 20px; left: 20px; opacity: 0; transition: 0.3s; }
+        .gallery-item:hover .overlay { opacity: 1; }
+        .overlay h4 { color: #fff; margin: 0; font-size: 18px; }
+        .overlay p { color: var(--gold); font-size: 13px; text-transform: uppercase; }
+
+        .reviews-section { padding: 100px 0; background: #111; color: #fff; text-align: center; }
+        .review-card { background: #1a1a1a; padding: 40px; border-radius: 8px; border: 1px solid #333; max-width: 800px; margin: 0 auto; position: relative; }
+        .review-card::before { content: '"'; font-family: serif; font-size: 100px; color: var(--gold); opacity: 0.2; position: absolute; top: -20px; left: 20px; }
+        .review-text { font-size: 18px; font-style: italic; color: #ddd; margin-bottom: 20px; line-height: 1.6; }
+        .review-author { font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; }
+
+        footer { background: #000; color: #666; padding: 50px 0; text-align: center; font-size: 13px; border-top: 1px solid #222; }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; overflow-y: auto; }
+        .modal-box { background: #fff; width: 95%; max-width: 500px; margin: 50px auto; border-radius: 12px; overflow: hidden; }
+        .modal-header { background: #111; padding: 20px; color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--gold); }
+        .close { color: var(--gold); font-size: 28px; cursor: pointer; }
+        .modal-body { padding: 30px; }
+        .step { display: none; } .step.active { display: block; }
+        .opt-card { border: 2px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition:0.2s; }
+        .opt-card.selected { border-color: var(--gold); background: #fffdf0; }
+        .btn-next { width: 100%; background: var(--black); color: #fff; padding: 15px; border: none; cursor: pointer; font-weight: 700; border-radius: 5px; margin-top: 15px; }
+        .btn-back-modal { width: 100%; background: #eee; color: #333; padding: 15px; border: none; cursor: pointer; font-weight: 700; border-radius: 5px; margin-top: 10px; }
+        .input-box { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        #slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .slot { background: #f4f4f4; padding: 10px; text-align: center; border-radius: 5px; cursor: pointer; font-size: 13px; }
+        .slot.selected { background: var(--gold); color: #000; }
+
+        @media(max-width:768px){ 
+            .hero-grid, .skills-grid { grid-template-columns: 1fr; }
+            .hero-img-box { order: -1; margin-bottom: 40px; }
+            .profile-hero { padding-top: 100px; text-align: center; }
+            .hero-info h1 { font-size: 40px; }
+            .stats-row { justify-content: center; }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <a href="index.php" class="logo">
-                    <img src="assets/LOGO LEGACY SF/2.png" alt="Legacy Style">
-                    <p><span>LEGACY</p></span><p>STYLE</p>
-                </a>
-                <a href="index.php" class="back-btn">
-                    <i class="fas fa-arrow-left"></i> Voltar
-                </a>
-            </div>
+
+    <header>
+        <div class="container header-flex">
+            <a href="index.php" class="logo"><img src="assets/LOGO LEGACY SF/2.png" alt="Legacy"> LEGACY <span>STYLE</span></a>
+            <a href="index.php" class="btn-back"><i class="fas fa-arrow-left"></i> Voltar</a>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="barber-hero">
-        <div class="barber-hero-content">
-            <img src="assets/fotovitor.png" alt="Vitinho" class="barber-avatar">
-            <h1>Vitor "Vitinho"</h1>
-            <span class="specialty-badge">Especialista em Degradês</span>
-            <p>Mestre na arte do degradê perfeito, transformando cortes em verdadeiras obras de arte.</p>
-            
-            <div class="social-links">
-                <a href="https://wa.me/5541988383629" class="social-link" target="_blank">
-                    <i class="fab fa-whatsapp"></i>
-                </a>
-                <a href="https://www.instagram.com/ovitinhobarber/" class="social-link" target="_blank">
-                    <i class="fab fa-instagram"></i>
-                </a>
-                <a href="#" class="social-link">
-                    <i class="fas fa-calendar-alt"></i>
-                </a>
+    <section class="profile-hero">
+        <div class="container hero-grid">
+            <div class="hero-info">
+                <h1>Vitor "Vitinho"</h1>
+                <span class="hero-role">Fade Specialist & Colorist</span>
+                <p class="hero-bio">"Estilo é a única coisa que você não pode comprar. Mas um bom fade ajuda."</p>
+                <p>Referência em degradês (Fade) e colorimetria avançada (Platinado). Vitinho traz precisão milimétrica e um estilo urbano que define tendências. Se você busca o corte perfeito com aquele acabamento navalhado impecável, você encontrou seu barbeiro.</p>
+                
+                <div class="stats-row">
+                    <div class="stat"><strong>+1.8k</strong><small>Degradês</small></div>
+                    <div class="stat"><strong>4</strong><small>Anos Exp.</small></div>
+                    <div class="stat"><strong>4.9</strong><small>Avaliação</small></div>
+                </div>
+
+                <button class="btn-cta" onclick="openModal()">Agendar com Vitinho</button>
+            </div>
+            <div class="hero-img-box">
+                <img src="assets/fotovitor.png" alt="Vitinho">
             </div>
         </div>
     </section>
 
-    <!-- About Section -->
-    <section class="about-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>Sobre o Barbeiro</h2>
-            </div>
-            
-            <div class="about-content">
-                <div class="about-text">
-                    <h3>Conheça Vitinho</h3>
-                    <p>Com 3 anos de experiência no mercado, Vitinho é conhecido por sua precisão nos degradês e penteados clássicos. Sua paixão pela barbearia começou cedo, aprendendo com os melhores profissionais da região.</p>
-                    <p>Especializado em técnicas de degradê navalhado e cortes milimétricos, Vitinho traz para cada cliente um atendimento personalizado, entendendo suas necessidades e superando expectativas para criar um visual único e marcante.</p>
-                    
-                    <div class="skills">
-                        <div class="skill-item">
-                            <div class="skill-name">
-                                <span>Degradê Navalhado</span>
-                                <span>98%</span>
-                            </div>
-                            <div class="skill-bar">
-                                <div class="skill-progress" style="width: 98%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="skill-item">
-                            <div class="skill-name">
-                                <span>Penteados Clássicos</span>
-                                <span>92%</span>
-                            </div>
-                            <div class="skill-bar">
-                                <div class="skill-progress" style="width: 92%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="skill-item">
-                            <div class="skill-name">
-                                <span>Visagismo</span>
-                                <span>88%</span>
-                            </div>
-                            <div class="skill-bar">
-                                <div class="skill-progress" style="width: 88%"></div>
-                            </div>
-                        </div>
-                    </div>
+    <section class="skills-section">
+        <div class="container skills-grid">
+            <div class="skills-text">
+                <div class="section-title">
+                    <h2>Especialidades</h2>
+                    <p>Foco total em técnicas modernas e acabamentos de alta definição.</p>
                 </div>
-                
-                <div class="about-image">
-                    <img src="assets/vitinho-working.jpg" alt="Vitinho trabalhando">
+                <p>Meu diferencial é o detalhe. O fade limpo, sem marcações, e o alinhamento geométrico do perfil. Além disso, sou especialista em química capilar, garantindo platinados saudáveis e com a tonalidade perfeita.</p>
+            </div>
+            <div class="skills-bars">
+                <div class="skill-item">
+                    <div class="skill-info"><span>Degradê (Fade)</span><span>100%</span></div>
+                    <div class="progress-bar"><div class="progress" style="width:100%"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-info"><span>Platinado (Color)</span><span>95%</span></div>
+                    <div class="progress-bar"><div class="progress" style="width:95%"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-info"><span>Freestyle (Desenho)</span><span>90%</span></div>
+                    <div class="progress-bar"><div class="progress" style="width:90%"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-info"><span>Pigmentação</span><span>95%</span></div>
+                    <div class="progress-bar"><div class="progress" style="width:95%"></div></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Portfolio Section -->
-    <section class="portfolio-section">
+    <section class="portfolio">
         <div class="container">
-            <div class="section-title">
-                <h2>Trabalhos Recentes</h2>
-                <p>Alguns dos melhores cortes realizados por Vitinho</p>
+            <div class="section-title" style="text-align: center;">
+                <h2>Galeria de Trabalhos</h2>
+                <div style="width:60px; height:3px; background:var(--gold); margin:10px auto;"></div>
             </div>
             
-            <div class="portfolio-grid">
-                <div class="portfolio-item">
-                    <img src="assets/degrade1.jpg" alt="Degradê perfeito" class="portfolio-image">
-                    <div class="portfolio-overlay">
-                        <h3 class="portfolio-title">Degradê Navalhado</h3>
-                        <span class="portfolio-category">Técnica Avançada</span>
-                    </div>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1599351431202-6e0c06e76553?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Fade">
+                    <div class="overlay"><h4>High Fade</h4><p>Degradê Alto</p></div>
                 </div>
-                
-                <div class="portfolio-item">
-                    <img src="assets/degrade2.jpg" alt="Degradê americano" class="portfolio-image">
-                    <div class="portfolio-overlay">
-                        <h3 class="portfolio-title">Degradê Americano</h3>
-                        <span class="portfolio-category">Corte + Design</span>
-                    </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Platinado">
+                    <div class="overlay"><h4>Nevou</h4><p>Platinado Global</p></div>
                 </div>
-                
-                <div class="portfolio-item">
-                    <img src="assets/penteado1.jpg" alt="Penteado clássico" class="portfolio-image">
-                    <div class="portfolio-overlay">
-                        <h3 class="portfolio-title">Penteado Pompadour</h3>
-                        <span class="portfolio-category">Estilo Clássico</span>
-                    </div>
-                </div>
-                
-                <div class="portfolio-item">
-                    <img src="assets/degrade3.jpg" alt="Degradê criativo" class="portfolio-image">
-                    <div class="portfolio-overlay">
-                        <h3 class="portfolio-title">Degradê Criativo</h3>
-                        <span class="portfolio-category">Corte + Desenho</span>
-                    </div>
-                </div>
-                
-                <div class="portfolio-item">
-                    <img src="assets/penteado2.jpg" alt="Penteado moderno" class="portfolio-image">
-                    <div class="portfolio-overlay">
-                        <h3 class="portfolio-title">Penteado Moderno</h3>
-                        <span class="portfolio-category">Estilo Contemporâneo</span>
-                    </div>
-                </div>
-                
-                <div class="portfolio-item">
-                    <img src="assets/degrade4.jpg" alt="Degradê high fade" class="portfolio-image">
-                    <div class="portfolio-overlay">
-                        <h3 class="portfolio-title">High Fade</h3>
-                        <span class="portfolio-category">Técnica Premium</span>
-                    </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1503951914875-befbb649186f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Freestyle">
+                    <div class="overlay"><h4>Razor Art</h4><p>Desenho na Navalha</p></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Video Section -->
-    <section class="video-section">
+    <section class="reviews-section">
         <div class="container">
-            <div class="section-title">
-                <h2>Técnica em Ação</h2>
-                <p>Assista Vitinho realizando um degradê perfeito</p>
-            </div>
-            
-            <div class="video-container">
-                <video controls poster="assets/video-thumbnail-vitinho.jpg">
-                    <source src="assets/vitinho-video.mp4" type="video/mp4">
-                    Seu navegador não suporta vídeos HTML5.
-                </video>
+            <div class="review-card">
+                <p class="review-text">"O melhor degradê que já fiz em Curitiba. O Vitinho é detalhista demais, não deixa passar nada. Virei cliente fiel."</p>
+                <span class="review-author">- Gustavo Lima, Cliente há 1 ano</span>
             </div>
         </div>
     </section>
 
-    <!-- Testimonials Section -->
-    <section class="testimonials-section">
+    <footer>
         <div class="container">
-            <div class="section-title">
-                <h2>O que dizem os clientes</h2>
-                <p>Depoimentos de quem já experimentou o trabalho de Vitinho</p>
-            </div>
-            
-            <div class="testimonials-grid">
-                <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        <p>O Vitinho é simplesmente incrível! Fez o melhor degradê que já tive na vida. Precisão milimétrica e atenção aos detalhes. Não vou mais em nenhum outro barbeiro!</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <img src="assets/cliente1.jpg" alt="Cliente" class="author-avatar">
-                        <div class="author-info">
-                            <h4>Marcos Silva</h4>
-                            <p>Cliente há 2 anos</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        <p>Sou cliente do Vitinho desde que ele começou na barbearia. Ver a evolução dele é impressionante. Hoje é referência em degradê na cidade!</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <img src="assets/cliente2.jpg" alt="Cliente" class="author-avatar">
-                        <div class="author-info">
-                            <h4>Ricardo Almeida</h4>
-                            <p>Cliente há 3 anos</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        <p>Fui indicado por um amigo e não me arrependi. Vitinho tem uma técnica impecável e ainda faz ótimas recomendações de cuidado com a barba. Recomendo demais!</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <img src="assets/cliente3.jpg" alt="Cliente" class="author-avatar">
-                        <div class="author-info">
-                            <h4>Gustavo Oliveira</h4>
-                            <p>Cliente há 1 ano</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="logo" style="margin-bottom: 20px;">
-                    <span style="color: var(--secondary);">LEGACY</span> STYLE
-                </div>
-                
-                <div class="footer-links">
-                    <a href="index.php">Início</a>
-                    <a href="index.php#about">Sobre</a>
-                    <a href="index.php#barbers">Barbeiros</a>
-                    <a href="index.php#services">Serviços</a>
-                    <a href="index.php#contact">Contato</a>
-                </div>
-                
-                <div class="social-links-footer">
-                    <a href="https://www.instagram.com/legacystylebr/"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="https://wa.me/5541988383629"><i class="fab fa-whatsapp"></i></a>
-                </div>
-                
-                <p class="copyright">&copy; 2024 Legacy Style Barbearia. Todos os direitos reservados.</p>
-            </div>
+            <p>&copy; 2024 Legacy Style - Vitinho. Todos os direitos reservados.</p>
         </div>
     </footer>
+
+    <div id="modal" class="modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Agendar com Vitinho</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                
+                <div id="step1" class="step active">
+                    <h4 style="margin-bottom:20px;">Selecione os Serviços:</h4>
+                    <?php 
+                    $servicos = $pdo->query("SELECT * FROM servicos")->fetchAll();
+                    foreach($servicos as $s): 
+                    ?>
+                    <label class="opt-card">
+                        <input type="checkbox" class="chk-serv" data-id="<?= $s['id'] ?>" data-price="<?= $s['preco'] ?>" data-dur="<?= $s['duracao'] ?>" style="display:none;">
+                        <div style="flex:1"><strong><?= $s['nome'] ?></strong><br><small style="color:#777;"><?= $s['duracao'] ?> min</small></div>
+                        <div style="font-weight:700;">R$ <?= number_format($s['preco'], 2, ',', '.') ?></div>
+                        <i class="fas fa-check-circle icon-check" style="color:#eee; font-size:20px;"></i>
+                    </label>
+                    <?php endforeach; ?>
+                    <div style="text-align:right; margin-top:20px; font-weight:700;">Total: <span id="totalDisplay" style="color:var(--gold);">R$ 0,00</span></div>
+                    <button class="btn-next" onclick="checkServ()">Escolher Horário</button>
+                </div>
+
+                <div id="step2" class="step">
+                    <h4 style="margin-bottom:20px;">Data e Hora:</h4>
+                    <input type="date" id="dateInp" class="input-box" min="<?= date('Y-m-d') ?>">
+                    <div id="slots"></div>
+                    <button class="btn-back-modal" onclick="toStep(1)">Voltar</button>
+                </div>
+
+                <div id="step3" class="step">
+                    <h4 style="margin-bottom:20px;">Seus Dados:</h4>
+                    <form action="salvar_agendamento.php" method="POST">
+                        <input type="hidden" name="barbeiro_id" value="<?= $barbeiro_id ?>">
+                        <input type="hidden" name="servicos" id="h_servs">
+                        <input type="hidden" name="data" id="h_date">
+                        <input type="hidden" name="hora" id="h_time">
+                        <input type="hidden" name="valor_total" id="h_price">
+
+                        <input type="text" name="nome" placeholder="Seu Nome" class="input-box" required>
+                        <input type="tel" name="telefone" placeholder="WhatsApp" class="input-box" required>
+                        <input type="email" name="email" placeholder="E-mail" class="input-box" required>
+
+                        <div style="background:#f4f4f4; padding:15px; border-radius:8px; margin-bottom:15px;">
+                            <label style="display:flex; gap:10px; margin-bottom:10px; cursor:pointer;"><input type="radio" name="payment_method" value="presencial" checked> Pagar na Loja</label>
+                            <label style="display:flex; gap:10px; cursor:pointer;"><input type="radio" name="payment_method" value="pix"> Pagar Online (Pix)</label>
+                        </div>
+
+                        <button type="submit" class="btn-next">Confirmar Agendamento</button>
+                        <button type="button" class="btn-back-modal" onclick="toStep(2)">Voltar</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let booking = { services:[], price:0, duration:0 };
+        const modal = document.getElementById('modal');
+        const barberId = <?= $barbeiro_id ?>;
+
+        function openModal() { modal.style.display = 'block'; toStep(1); }
+        document.querySelector('.close').onclick = () => modal.style.display = 'none';
+
+        function toStep(n) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step'+n).classList.add('active');
+        }
+
+        document.querySelectorAll('.chk-serv').forEach(chk => {
+            chk.onchange = () => {
+                let parent = chk.closest('.opt-card');
+                let icon = parent.querySelector('.icon-check');
+                let id = chk.dataset.id;
+                let p = parseFloat(chk.dataset.price);
+                let d = parseInt(chk.dataset.dur);
+
+                if(chk.checked) {
+                    parent.classList.add('selected');
+                    icon.style.color = 'var(--gold)';
+                    booking.services.push(id);
+                    booking.price += p;
+                    booking.duration += d;
+                } else {
+                    parent.classList.remove('selected');
+                    icon.style.color = '#eee';
+                    booking.services = booking.services.filter(x => x !== id);
+                    booking.price -= p;
+                    booking.duration -= d;
+                }
+                document.getElementById('totalDisplay').innerText = "R$ " + booking.price.toFixed(2).replace('.',',');
+            }
+        });
+
+        function checkServ() {
+            if(booking.services.length === 0) alert('Selecione um serviço.');
+            else toStep(2);
+        }
+
+        document.getElementById('dateInp').onchange = function() {
+            let val = this.value;
+            let div = document.getElementById('slots');
+            div.innerHTML = 'Carregando...';
+            
+            fetch(`get_horarios.php?barbeiro_id=${barberId}&data=${val}&duracao=${booking.duration}`)
+            .then(res => res.json())
+            .then(data => {
+                div.innerHTML = '';
+                if(data.length === 0) div.innerHTML = '<span style="color:red">Sem horários.</span>';
+                data.forEach(t => {
+                    let s = document.createElement('div');
+                    s.className = 'slot'; s.innerText = t;
+                    s.onclick = () => {
+                        document.getElementById('h_servs').value = booking.services.join(',');
+                        document.getElementById('h_date').value = val;
+                        document.getElementById('h_time').value = t;
+                        document.getElementById('h_price').value = booking.price;
+                        toStep(3);
+                    };
+                    div.appendChild(s);
+                });
+            });
+        };
+    </script>
 </body>
 </html>

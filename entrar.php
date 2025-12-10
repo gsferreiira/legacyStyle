@@ -2,10 +2,21 @@
 session_start();
 require 'db_connection.php';
 
+// Tenta incluir a configuração do Google (se o arquivo existir)
+if (file_exists('config_google.php')) {
+    require 'config_google.php';
+}
+
+// Se o cliente já estiver logado, manda pro painel
+if (isset($_SESSION['cliente_id'])) {
+    header("Location: meus_agendamentos.php");
+    exit;
+}
+
 $erro = '';
 $sucesso = '';
 
-// 1. Processar LOGIN
+// 1. Processar LOGIN (E-mail e Senha)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['acao'] === 'login') {
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
     $senha = $_POST['senha'];
@@ -20,7 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
         $_SESSION['cliente_email'] = $cliente['email'];
         $_SESSION['cliente_telefone'] = $cliente['telefone'];
         
-        // Redireciona para onde ele estava ou para o perfil
         header("Location: meus_agendamentos.php");
         exit;
     } else {
@@ -51,8 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
             $stmt->execute([$nome, $email, $telefone, $senhaHash]);
             $novo_id = $pdo->lastInsertId();
             
-            // VINCULA AGENDAMENTOS ANTIGOS (O Pulo do Gato!)
-            // Pega tudo que foi feito com esse email e atribui ao novo usuário
+            // VINCULA AGENDAMENTOS ANTIGOS (Pega histórico pelo email)
             $stmtUpdate = $pdo->prepare("UPDATE agendamentos SET id_cliente = ? WHERE email = ?");
             $stmtUpdate->execute([$novo_id, $email]);
             
@@ -73,6 +82,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
         }
     }
 }
+
+// Configura URL do Google (se as constantes existirem)
+$googleUrl = '#';
+if (defined('GOOGLE_CLIENT_ID') && defined('GOOGLE_REDIRECT_URL')) {
+    $googleUrl = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code' .
+            '&client_id=' . GOOGLE_CLIENT_ID . 
+            '&redirect_uri=' . urlencode(GOOGLE_REDIRECT_URL) . 
+            '&scope=email profile';
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -83,56 +101,129 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body { font-family: 'Montserrat', sans-serif; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; width: 90%; max-width: 400px; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
-        .tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; font-weight: 600; color: #aaa; }
+        body { font-family: 'Montserrat', sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        
+        .container { 
+            background: white; width: 90%; max-width: 420px; padding: 40px; 
+            border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+        }
+        
+        .logo-area { text-align: center; margin-bottom: 30px; }
+        .logo-area img { height: 50px; margin-bottom: 10px; }
+        .logo-area h2 { margin: 0; color: #111; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* Abas */
+        .tabs { display: flex; margin-bottom: 25px; border-bottom: 2px solid #eee; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: 600; color: #aaa; transition: 0.3s; }
         .tab.active { color: #d4af37; border-bottom: 2px solid #d4af37; margin-bottom: -2px; }
-        h2 { text-align: center; color: #1a1a1a; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 12px; background: #d4af37; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; }
-        .btn:hover { background: #b59530; }
-        .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 14px; }
-        .back-link { display: block; text-align: center; margin-top: 15px; color: #666; text-decoration: none; font-size: 14px; }
+        
+        /* Inputs */
+        .form-group { position: relative; margin-bottom: 15px; }
+        .form-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa; }
+        
+        input { 
+            width: 100%; padding: 12px 12px 12px 40px; 
+            border: 1px solid #ddd; border-radius: 6px; 
+            box-sizing: border-box; font-family: 'Montserrat', sans-serif;
+            transition: 0.3s; font-size: 14px;
+        }
+        input:focus { border-color: #d4af37; outline: none; }
+        
+        .btn { width: 100%; padding: 14px; background: #111; color: #d4af37; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        .btn:hover { background: #000; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        
+        /* Botão Google */
+        .btn-google {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 12px; margin-bottom: 25px;
+            background: #fff; border: 1px solid #ddd; border-radius: 6px;
+            color: #555; font-weight: 600; cursor: pointer; text-decoration: none;
+            font-size: 14px; transition: 0.3s;
+        }
+        .btn-google:hover { background: #f9f9f9; border-color: #ccc; }
+        .separator { text-align: center; margin: 20px 0; color: #aaa; font-size: 12px; position: relative; }
+        .separator::before, .separator::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: #eee; }
+        .separator::before { left: 0; }
+        .separator::after { right: 0; }
+
+        .error { background: #fff0f0; color: #d63031; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-size: 13px; text-align: center; border: 1px solid #ffcccc; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #777; text-decoration: none; font-size: 13px; font-weight: 500; }
+        .back-link:hover { color: #d4af37; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <img src="assets/LOGO LEGACY SF/1.png" alt="Legacy Style" style="height: 50px;">
+        <div class="logo-area">
+            <img src="assets/LOGO LEGACY SF/2.png" alt="Legacy Style">
+            <h2>Área do Cliente</h2>
         </div>
 
         <?php if ($erro): ?>
-            <div class="error"><?= $erro ?></div>
+            <div class="error"><i class="fas fa-exclamation-circle"></i> <?= $erro ?></div>
         <?php endif; ?>
 
+        <a href="<?= $googleUrl ?>" class="btn-google">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="G">
+            Entrar com Google
+        </a>
+
+        <div class="separator">OU USE SEU E-MAIL</div>
+
         <div class="tabs">
-            <div class="tab active" onclick="showTab('login')">Já tenho conta</div>
-            <div class="tab" onclick="showTab('cadastro')">Criar conta</div>
+            <div class="tab active" onclick="showTab('login')">Entrar</div>
+            <div class="tab" onclick="showTab('cadastro')">Cadastrar</div>
         </div>
 
         <form id="form-login" method="POST">
             <input type="hidden" name="acao" value="login">
-            <input type="email" name="email" placeholder="Seu E-mail" required>
-            <input type="password" name="senha" placeholder="Sua Senha" required>
-            <button type="submit" class="btn">Entrar</button>
+            
+            <div class="form-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" placeholder="Seu E-mail" required>
+            </div>
+            
+            <div class="form-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="senha" placeholder="Sua Senha" required>
+            </div>
+            
+            <button type="submit" class="btn">Acessar Conta</button>
         </form>
 
         <form id="form-cadastro" method="POST" style="display: none;">
             <input type="hidden" name="acao" value="cadastro">
-            <input type="text" name="nome" placeholder="Nome Completo" required>
-            <input type="tel" name="telefone" placeholder="WhatsApp (DDD + Número)" required>
-            <input type="email" name="email" placeholder="Seu E-mail" required>
-            <input type="password" name="senha" placeholder="Crie uma Senha" required>
-            <button type="submit" class="btn">Cadastrar</button>
+            
+            <div class="form-group">
+                <i class="fas fa-user"></i>
+                <input type="text" name="nome" placeholder="Nome Completo" required>
+            </div>
+
+            <div class="form-group">
+                <i class="fab fa-whatsapp"></i>
+                <input type="tel" name="telefone" placeholder="WhatsApp (DDD + Número)" required>
+            </div>
+
+            <div class="form-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" placeholder="Seu E-mail" required>
+            </div>
+            
+            <div class="form-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="senha" placeholder="Crie uma Senha" required>
+            </div>
+            
+            <button type="submit" class="btn">Criar Conta</button>
         </form>
 
-        <a href="index.php" class="back-link">Voltar ao site</a>
+        <a href="index.php" class="back-link"><i class="fas fa-arrow-left"></i> Voltar ao site</a>
     </div>
 
     <script>
         function showTab(tab) {
+            // Remove active de todas as abas
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
             if(tab === 'login') {
                 document.querySelectorAll('.tab')[0].classList.add('active');
                 document.getElementById('form-login').style.display = 'block';

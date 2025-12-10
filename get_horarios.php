@@ -1,91 +1,86 @@
 <?php
+// Garante que o PHP não mostre erros na tela (quebra o JSON)
+error_reporting(0); 
+ini_set('display_errors', 0);
+
+header('Content-Type: application/json; charset=utf-8');
 require 'db_connection.php';
 date_default_timezone_set('America/Sao_Paulo');
 
-$barbeiro_id = filter_input(INPUT_GET, 'barbeiro_id', FILTER_VALIDATE_INT);
-$data = filter_input(INPUT_GET, 'data', FILTER_SANITIZE_STRING);
-$duracao = filter_input(INPUT_GET, 'duracao', FILTER_VALIDATE_INT);
-
-if (!$barbeiro_id || !$data || !$duracao) {
-    http_response_code(400); echo json_encode(['error' => 'Dados incompletos']); exit;
-}
-
-// Validar data limite
-$dataSelecionada = new DateTime($data);
-$dataLimite = (new DateTime())->modify('+15 days'); // Aumentei para 15 dias para teste
-if ($dataSelecionada > $dataLimite) {
-    http_response_code(400); echo json_encode(['error' => 'Data muito distante']); exit;
-}
-
 try {
-    // 1. Verificar BLOQUEIOS (Novo!)
-    // Primeiro vê se o dia inteiro está bloqueado
-    $stmtBlock = $pdo->prepare("SELECT * FROM bloqueios WHERE id_barbeiro = ? AND data = ?");
-    $stmtBlock->execute([$barbeiro_id, $data]);
-    $bloqueios = $stmtBlock->fetchAll();
+    $barbeiro_id = filter_input(INPUT_GET, 'barbeiro_id', FILTER_VALIDATE_INT);
+    $data = filter_input(INPUT_GET, 'data', FILTER_SANITIZE_STRING);
+    $duracao = filter_input(INPUT_GET, 'duracao', FILTER_VALIDATE_INT);
 
-    foreach ($bloqueios as $bloqueio) {
-        if ($bloqueio['dia_inteiro'] == 1) {
-            // Se o dia todo ta bloqueado, retorna lista vazia e sai
-            echo json_encode([]); 
-            exit;
-        }
+    // Validação básica
+    if (!$barbeiro_id || !$data || !$duracao) {
+        echo json_encode([]); 
+        exit;
     }
 
-    // 2. Configuração de Horários da Barbearia
-    $dia_semana = date('N', strtotime($data));
-    switch($dia_semana) {
-        case 1: $inicio = strtotime("10:00"); $fim = strtotime("18:00"); break; // Seg
-        case 2: case 3: case 4: $inicio = strtotime("09:00"); $fim = strtotime("20:00"); break; // Ter-Qui
-        case 5: $inicio = strtotime("09:00"); $fim = strtotime("21:30"); break; // Sex
-        case 6: $inicio = strtotime("08:00"); $fim = strtotime("17:30"); break; // Sab
-        default: echo json_encode([]); exit; // Domingo fechado
+    // Configuração de Horários (Pode ajustar conforme necessidade)
+    $dia_semana = date('N', strtotime($data)); // 1=Seg, 7=Dom
+    
+    // Defina seus horários aqui:
+    if ($dia_semana == 7) { 
+        // Domingo Fechado
+        echo json_encode([]); 
+        exit; 
+    } elseif ($dia_semana == 6) {
+        // Sábado: 08:00 as 17:30
+        $inicio = strtotime("$data 08:00");
+        $fim = strtotime("$data 17:30");
+    } else {
+        // Seg-Sex: 09:00 as 20:00
+        $inicio = strtotime("$data 09:00");
+        $fim = strtotime("$data 20:00");
     }
 
-    // 3. Busca Agendamentos Existentes
+    // Intervalo de almoço (Opcional - Exemplo: 12:00 as 13:00)
+    // $almoco_inicio = strtotime("$data 12:00");
+    // $almoco_fim = strtotime("$data 13:00");
+
+    // Busca agendamentos já feitos
     $stmt = $pdo->prepare("SELECT hora, duracao FROM agendamentos WHERE id_barbeiro = ? AND data = ?");
     $stmt->execute([$barbeiro_id, $data]);
-    $agendamentos = $stmt->fetchAll();
+    $agendamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $horarios_disponiveis = [];
-
-    // Loop de 30 em 30 minutos
-    for ($time = $inicio; $time <= ($fim - $duracao * 60); $time += 1800) {
-        $slot_start = $time;
-        $slot_end = $time + $duracao * 60;
+    
+    // Loop de 30 em 30 minutos (1800 segundos)
+    for ($time = $inicio; $time <= ($fim - ($duracao * 60)); $time += 1800) {
+        
+        $slot_inicio = $time;
+        $slot_fim = $time + ($duracao * 60);
         $disponivel = true;
 
-        // A) Checa colisão com Agendamentos (Clientes)
-        foreach ($agendamentos as $ag) {
-            $ag_start = strtotime($ag['hora']);
-            $ag_end = $ag_start + $ag['duracao'] * 60;
-            if (($slot_start < $ag_end) && ($slot_end > $ag_start)) {
-                $disponivel = false; break;
-            }
+        // 1. Verifica se já passou da hora atual (se for hoje)
+        if (date('Y-m-d') == $data && $time < time()) {
+            $disponivel = false;
         }
 
-        // B) Checa colisão com Bloqueios Parciais (Almoço, Médico)
+        // 2. Verifica colisão com agendamentos existentes
         if ($disponivel) {
-            foreach ($bloqueios as $bl) {
-                if ($bl['dia_inteiro'] == 0) {
-                    $bl_start = strtotime($bl['hora_inicio']);
-                    $bl_end = strtotime($bl['hora_fim']);
-                    // Se o slot do cliente encosta ou entra no bloqueio
-                    if (($slot_start < $bl_end) && ($slot_end > $bl_start)) {
-                        $disponivel = false; break;
-                    }
+            foreach ($agendamentos as $ag) {
+                $ag_inicio = strtotime("$data " . $ag['hora']);
+                $ag_fim = $ag_inicio + ($ag['duracao'] * 60);
+
+                // Se o horário desejado encavala com um agendamento existente
+                if ( ($slot_inicio < $ag_fim) && ($slot_fim > $ag_inicio) ) {
+                    $disponivel = false;
+                    break;
                 }
             }
         }
-        
+
         if ($disponivel) {
-            $horarios_disponiveis[] = date("H:i", $time);
+            $horarios_disponiveis[] = date('H:i', $time);
         }
     }
 
     echo json_encode($horarios_disponiveis);
 
-} catch (PDOException $e) {
-    http_response_code(500); echo json_encode(['error' => 'Erro interno']);
+} catch (Exception $e) {
+    echo json_encode([]);
 }
 ?>

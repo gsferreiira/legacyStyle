@@ -8,8 +8,11 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legacy Style - Barbearia Premium</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <link rel="shortcut icon" href="assets/LOGO LEGACY SF/1.png" type="image/x-icon">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
@@ -103,26 +106,29 @@ session_start();
 
         /* --- HERO SECTION (PARALLAX) --- */
         .hero {
-            height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.6)), url('assets/interior1.jpg'); /* FOTO DE FUNDO GENÉRICA DE ALTA QUALIDADE */
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            position: relative;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             color: #fff;
             padding-top: 80px;
+            overflow: hidden;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.6)), url('assets/interior1.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
+
         .hero h1 {
             font-family: 'Playfair Display', serif;
-            font-size: 60px;
+            font-size: clamp(32px, 6vw, 60px);
             margin-bottom: 20px;
             line-height: 1.1;
         }
         .hero p {
-            font-size: 20px;
+            font-size: clamp(14px, 2.2vw, 20px);
             margin-bottom: 40px;
             color: #ddd;
             max-width: 700px;
@@ -130,7 +136,7 @@ session_start();
             margin-right: auto;
         }
 
-        /* --- FEATURE CARDS (NOVO: SOBREPOSTO AO HERO) --- */
+        /* --- FEATURE CARDS --- */
         .features-wrapper {
             margin-top: -80px;
             position: relative;
@@ -163,7 +169,7 @@ session_start();
         .feature-card h3 { font-size: 20px; margin-bottom: 15px; text-transform: uppercase; }
         .feature-card p { font-size: 14px; color: #666; }
 
-        /* --- SOBRE (TEXTO + TEXTURA) --- */
+        /* --- SOBRE --- */
         .about-section { background-color: #fff; }
         .about-grid { display: flex; align-items: center; gap: 50px; flex-wrap: wrap; }
         .about-content { flex: 1; min-width: 300px; }
@@ -171,7 +177,6 @@ session_start();
         .about-content h2 { font-size: 36px; line-height: 1.2; margin-bottom: 25px; color: var(--primary); }
         .about-content p { margin-bottom: 20px; color: #555; font-size: 16px; }
         
-        /* Contador de Estatísticas (Enche linguiça visualmente) */
         .stats-grid { 
             display: flex; 
             gap: 40px; 
@@ -182,8 +187,8 @@ session_start();
         .stat-item strong { display: block; font-size: 32px; color: var(--primary); font-weight: 800; }
         .stat-item span { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* --- SERVIÇOS (DARK MODE) --- */
-        .services-section { background-color: #111; color: #fff; background-image: url('assets/pattern-dark.png'); /* Textura sutil opcional */ }
+        /* --- SERVIÇOS --- */
+        .services-section { background-color: #111; color: #fff; background-image: url('assets/pattern-dark.png'); }
         .section-header { text-align: center; margin-bottom: 60px; }
         .section-header h2 { font-size: 36px; margin-bottom: 15px; color: #fff; }
         .section-header .divider { height: 3px; width: 70px; background: var(--secondary); margin: 0 auto; }
@@ -206,25 +211,22 @@ session_start();
 
         /* --- BARBEIROS --- */
         .barbers-section { background-color: #f9f9f9; }
+        .barbers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 50px;
+        }
         .barber-card {
             background: #fff;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             transition: 0.3s;
-            
         }
         .barber-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         .barber-img { height: 380px; overflow: hidden; background: #eee; position: relative; }
         .barber-img img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
         .barber-card:hover .barber-img img { transform: scale(1.05); }
-
-        .barbers-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 50px;
-        }
-        
         .barber-info { padding: 30px; text-align: center; }
         .barber-info h3 { font-size: 22px; margin-bottom: 5px; }
         .barber-info span { color: var(--secondary); font-size: 13px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 15px; }
@@ -251,7 +253,7 @@ session_start();
         .contact-section { background: #111; color: #fff; }
         .contact-wrapper { display: flex; flex-wrap: wrap; }
         .contact-info { flex: 1; padding: 80px 50px; min-width: 300px; }
-        .contact-map { flex: 1; min-width: 300px; height: 500px; background: #222; } /* Espaço para o mapa */
+        .contact-map { flex: 1; min-width: 300px; height: 500px; background: #222; }
         
         .info-row { display: flex; gap: 20px; margin-bottom: 30px; }
         .info-row i { font-size: 24px; color: var(--secondary); margin-top: 5px; }
@@ -309,28 +311,9 @@ session_start();
         .time-slot { background: #f9f9f9; border: 1px solid #ddd; padding: 10px; border-radius: 6px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; }
         .time-slot:hover, .time-slot.selected { background: var(--secondary); color: #000; border-color: var(--secondary); }
         .service-check-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .hero {
-            position: relative;
-            min-height: 70vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #fff;
-            padding-top: 80px;
-            overflow: hidden;
-        }
-        .hero .hero-media { position: absolute; inset: 0; z-index: 0; }
-        .hero .hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
-        .hero .hero-overlay { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.5)); z-index: 1; }
-        .hero .hero-content { position: relative; z-index: 2; padding: 60px 15px; max-width: 1100px; }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(32px, 6vw, 60px); margin-bottom: 20px; line-height: 1.1; }
-        .hero p { font-size: clamp(14px, 2.2vw, 20px); margin-bottom: 40px; color: #ddd; max-width: 700px; margin-left: auto; margin-right: auto; }
-        @media (prefers-reduced-motion: reduce) { .hero .hero-media img { transition: none !important; } }
-        @media (max-width: 480px) {
-            .hero { min-height: 55vh; padding-top: 70px; }
-            .hero .hero-content { padding: 40px 12px; }
-        }
+        
+        .input-group { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .input-group input { width: 100%; border: none; outline: none; font-size: 14px; background: transparent; }
     </style>
 </head>
 <body>
@@ -433,8 +416,6 @@ session_start();
                 </div>
                 <?php endforeach; ?>
             </div>
-            <div class="text-center" style="margin-top: 50px;">
-            </div>
         </div>
     </section>
 
@@ -532,7 +513,7 @@ session_start();
     <footer>
         <div class="container">
             <div class="logo" style="justify-content: center; margin-bottom: 20px;">LEGACY <span>STYLE</span></div>
-            <p>&copy; 2024 Legacy Style Barbearia. Todos os direitos reservados.</p>
+            <p>© 2024 Legacy Style Barbearia. Todos os direitos reservados.</p>
         </div>
     </footer>
 
@@ -542,7 +523,7 @@ session_start();
         <div class="booking-content">
             <div class="booking-header">
                 <h3>Agendar Horário</h3>
-                <span class="close-booking" role="button" aria-label="Fechar">&times;</span>
+                <span class="close-booking" role="button" aria-label="Fechar">×</span>
             </div>
             <div class="booking-body">
                 <div id="step1">
@@ -600,32 +581,45 @@ session_start();
                     <span class="step-indicator">Passo 4 de 4</span>
                     <h4 class="step-title">Finalizar</h4>
                     
-                    <form method="POST" action="salvar_agendamento.php">
-                        <input type="hidden" name="barbeiro_id" id="confirmBarbeiroId">
-                        <input type="hidden" name="servicos" id="confirmServicosIds">
-                        <input type="hidden" name="data" id="confirmData">
-                        <input type="hidden" name="hora" id="confirmHora">
-                        <input type="hidden" name="valor_total" id="valorTotal">
+                    <form action="salvar_agendamento.php" method="POST">
+                        <input type="hidden" name="barbeiro_id" id="inpBarbeiro">
+                        <input type="hidden" name="servicos" id="inpServicos">
+                        <input type="hidden" name="data" id="inpData">
+                        <input type="hidden" name="hora" id="inpHora">
+                        <input type="hidden" name="valor_total" id="inpValor">
 
-                        <input type="text" name="nome" placeholder="Nome Completo" required style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:6px;">
-                        <input type="tel" name="telefone" placeholder="WhatsApp (41...)" required style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:6px;">
-                        <input type="email" name="email" placeholder="E-mail" required style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:6px;">
+                        <div class="input-group">
+                            <input type="text" name="nome" placeholder="Nome Completo" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="tel" name="telefone" placeholder="WhatsApp (DDD+Num)" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="text" name="cpf" placeholder="CPF (Apenas números)" required maxlength="14">
+                        </div>
 
-                        <div style="background:#f4f4f4; padding:15px; border-radius:6px; margin-bottom:15px;">
-                            <label style="display:flex; align-items:center; gap:10px; margin-bottom:10px; cursor:pointer;">
-                                <input type="radio" name="payment_method" value="presencial" checked> Pagar na Barbearia
+                        <div class="input-group">
+                            <input type="email" name="email" placeholder="E-mail" required>
+                        </div>
+
+                        <div style="background:#f4f4f4; padding:15px; border-radius:8px; margin-bottom:20px;">
+                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin-bottom:10px;">
+                                <input type="radio" name="payment_method" value="presencial" checked> <span>Pagar na Barbearia</span>
                             </label>
                             <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                                <input type="radio" name="payment_method" value="pix"> Pagar Online (Pix/Cartão)
+                                <input type="radio" name="payment_method" value="pix"> <span>Pagar Online (Pix/Cartão)</span>
                             </label>
                         </div>
 
-                        <div id="redirectInfo" style="display:none; padding:10px; background:#e3f2fd; border-left:3px solid #2196f3; font-size:12px; margin-bottom:15px; border-radius:4px;">
-                            Você será redirecionado para o <strong>Mercado Pago</strong> para finalizar o pagamento com segurança.
+                        <div id="redirectMsg" style="display:none; padding:10px; background:#e3f2fd; font-size:12px; margin-bottom:15px; border-radius:5px; color:#0d47a1;">
+                            Você será redirecionado para o <strong>Mercado Pago</strong> para finalizar.
                         </div>
 
-                        <button type="submit" class="modal-btn btn-next">Confirmar Agendamento</button>
-                        <button type="button" class="modal-btn btn-back" onclick="goToStep(3)">Voltar</button>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-back" onclick="changeStep(3)">Voltar</button>
+                            <button type="submit" class="btn-next">Confirmar</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -633,7 +627,7 @@ session_start();
     </div>
 
     <script>
-        // seletor seguro e inicializações
+        // --- FUNÇÕES DO MODAL ---
         const modal = document.getElementById('bookingModal');
         const openBtns = [document.getElementById('bookNowHero'), document.getElementById('bookNowServices')].filter(Boolean);
         let currentBarber = null;
@@ -662,17 +656,13 @@ session_start();
         const closeBtn = document.querySelector('.close-booking');
         if (closeBtn) closeBtn.addEventListener('click', closeModal);
 
-        // fecha ao clicar fora do conteúdo
         if (modal) {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) closeModal();
             });
         }
-
-        // fecha com Esc
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-
-        // Menu mobile safe
+        
         const menuToggle = document.querySelector('.menu-toggle');
         if (menuToggle) {
             menuToggle.addEventListener('click', () => {
@@ -687,7 +677,8 @@ session_start();
             if (target) target.style.display = 'block';
         }
 
-        // Passo 1 - barbeiros (proteção se não houver elementos)
+        function changeStep(step) { goToStep(step); }
+
         const barberOptions = document.querySelectorAll('.barber-option') || [];
         barberOptions.forEach(opt => {
             opt.addEventListener('click', function() {
@@ -698,7 +689,6 @@ session_start();
             });
         });
 
-        // Passo 2 - serviços (seletor seguro)
         const serviceCheckboxes = document.querySelectorAll('input[type="checkbox"][data-service]') || [];
         serviceCheckboxes.forEach(chk => {
             chk.addEventListener('change', function() {
@@ -728,7 +718,6 @@ session_start();
             });
         }
 
-        // Passo 3 - data e horários
         const dateInput = document.getElementById('appointmentDate');
         if (dateInput) {
             dateInput.addEventListener('change', function() {
@@ -750,18 +739,23 @@ session_start();
                         return;
                     }
                     times.forEach(t => {
-                        const btn = document.createElement('div'); btn.className = 'time-slot'; btn.innerText = t;
+                        const btn = document.createElement('div'); 
+                        btn.className = 'time-slot'; 
+                        btn.innerText = t;
+                        
                         btn.onclick = () => {
-                            const confirmBarb = document.getElementById('confirmBarbeiroId');
-                            const confirmServ = document.getElementById('confirmServicosIds');
-                            const confirmData = document.getElementById('confirmData');
-                            const confirmHora = document.getElementById('confirmHora');
-                            const valorTotal = document.getElementById('valorTotal');
+                            const confirmBarb = document.getElementById('inpBarbeiro');
+                            const confirmServ = document.getElementById('inpServicos');
+                            const confirmData = document.getElementById('inpData');
+                            const confirmHora = document.getElementById('inpHora');
+                            const valorTotal  = document.getElementById('inpValor');
+
                             if (confirmBarb) confirmBarb.value = currentBarber || '';
                             if (confirmServ) confirmServ.value = currentServices.join(',');
                             if (confirmData) confirmData.value = dateInput.value;
                             if (confirmHora) confirmHora.value = t;
-                            if (valorTotal) valorTotal.value = currentPrice;
+                            if (valorTotal)  valorTotal.value = currentPrice.toFixed(2);
+
                             goToStep(4);
                         };
                         container.appendChild(btn);
@@ -773,30 +767,62 @@ session_start();
             });
         }
 
-        // Passo 4 - método de pagamento
         document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
             radio.addEventListener('change', function() {
-                const redirectInfo = document.getElementById('redirectInfo');
-                const valorTotal = document.getElementById('valorTotal');
+                const redirectInfo = document.getElementById('redirectMsg');
+                const valorTotal = document.getElementById('inpValor');
                 if (this.value === 'pix') {
                     if (redirectInfo) redirectInfo.style.display = 'block';
-                    const discPrice = currentPrice * 0.95;
-                    if (valorTotal) valorTotal.value = discPrice;
+                    if (valorTotal) valorTotal.value = currentPrice.toFixed(2);
                 } else {
                     if (redirectInfo) redirectInfo.style.display = 'none';
-                    if (valorTotal) valorTotal.value = currentPrice;
+                    if (valorTotal) valorTotal.value = currentPrice.toFixed(2);
                 }
             });
         });
+    </script>
 
-        // Mensagens via URL (seguro)
-        try {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verifica se existe mensagem na URL (ex: index.php?agendamento=sucesso)
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('agendamento') === 'sucesso' && urlParams.get('mensagem')) alert(urlParams.get('mensagem'));
-            if (urlParams.get('agendamento') === 'erro' && urlParams.get('mensagem')) alert(urlParams.get('mensagem'));
-        } catch(e) {
-            // ignore
-        }
+            const status = urlParams.get('agendamento');
+            const mensagem = urlParams.get('mensagem');
+
+            if (status && mensagem) {
+                // Cria o alerta tipo TOAST (notificação de canto)
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 4000, // Fica 4 segundos
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
+
+                if (status === 'sucesso') {
+                    // Notificação VERDE de Sucesso
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Tudo certo!',
+                        text: mensagem
+                    });
+                } else if (status === 'erro') {
+                    // Notificação VERMELHA de Erro
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Ops!',
+                        text: mensagem
+                    });
+                }
+                
+                // Limpa a URL para não mostrar o alerta de novo se der F5
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
     </script>
 </body>
-</html>
+</html>w

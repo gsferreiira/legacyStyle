@@ -1,21 +1,22 @@
 <?php
 session_start();
 require 'db_connection.php';
-require 'envia_email.php';
+// require 'envia_email.php'; // Se tiver esse arquivo, pode descomentar
 
-// CONFIGURAÇÃO DE URL (Ajuste se necessário)
+// --- CONFIGURAÇÃO MANUAL DA URL ---
+// Importante: Alterei de 'msg' para 'mensagem' para bater com o JavaScript do index.php
 define('SITE_URL', 'https://www.legacystyle.com.br'); 
 
-$url_sucesso  = SITE_URL . "/index.php?agendamento=sucesso&msg=Pagamento_Aprovado";
-$url_falha    = SITE_URL . "/index.php?agendamento=erro&msg=Pagamento_Falhou";
-$url_pendente = SITE_URL . "/index.php?agendamento=sucesso&msg=Pagamento_Pendente";
+$url_sucesso  = SITE_URL . "/index.php?agendamento=sucesso&mensagem=Pagamento confirmado!";
+$url_falha    = SITE_URL . "/index.php?agendamento=erro&mensagem=O pagamento falhou. Tente novamente.";
+$url_pendente = SITE_URL . "/index.php?agendamento=sucesso&mensagem=Estamos processando seu pagamento.";
 $url_webhook  = SITE_URL . '/notificacao.php';
 
 date_default_timezone_set('America/Sao_Paulo');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // 1. Receber Dados (SEM CPF)
+    // 1. Receber Dados
     $barbeiro_id    = filter_input(INPUT_POST, 'barbeiro_id', FILTER_VALIDATE_INT);
     $servicos_ids   = filter_input(INPUT_POST, 'servicos', FILTER_SANITIZE_STRING);
     $data           = filter_input(INPUT_POST, 'data', FILTER_SANITIZE_STRING);
@@ -25,10 +26,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email          = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
     $pagamento      = filter_input(INPUT_POST, 'payment_method', FILTER_SANITIZE_STRING) ?? 'presencial';
     $valor_final    = (float) ($_POST['valor_total'] ?? 0);
+    
+    // CPF: Remove tudo que não for número
+    $cpf_limpo      = preg_replace('/[^0-9]/', '', $_POST['cpf'] ?? '');
+
     $id_cliente     = $_SESSION['cliente_id'] ?? null;
 
+    // Validação
     if (!$barbeiro_id || !$servicos_ids || !$data || !$hora || !$email) {
-        die("<h3>Erro:</h3> Dados incompletos. <a href='index.php'>Voltar</a>");
+        // Redireciona com erro em vez de morrer na tela branca
+        header("Location: index.php?agendamento=erro&mensagem=Preencha todos os campos obrigatórios.");
+        exit;
+    }
+    
+    if ($pagamento === 'pix' && strlen($cpf_limpo) < 11) {
+        header("Location: index.php?agendamento=erro&mensagem=CPF inválido para pagamento Pix.");
+        exit;
     }
 
     try {
@@ -37,30 +50,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2. Token do Barbeiro
         $stmt = $pdo->prepare("SELECT nome, mp_access_token FROM barbeiros WHERE id = ?");
         $stmt->execute([$barbeiro_id]);
-        $dados_barbeiro = $stmt->fetch();
+        $barbeiro_dados = $stmt->fetch();
         
-        $token_mp = trim($dados_barbeiro['mp_access_token']);
-        $nome_barbeiro = $dados_barbeiro['nome'];
+        $token_mp = trim($barbeiro_dados['mp_access_token'] ?? '');
+        $nome_barbeiro = $barbeiro_dados['nome'] ?? 'Barbeiro';
 
         // 3. Serviços
         $ids = explode(',', $servicos_ids);
+        // Prepara query segura para array
         $marks = implode(',', array_fill(0, count($ids), '?'));
         $stmtS = $pdo->prepare("SELECT nome FROM servicos WHERE id IN ($marks)");
         $stmtS->execute($ids);
-        $servicos_nomes = $stmtS->fetchAll(PDO::FETCH_COLUMN);
-        $descricao = "Corte Legacy - " . implode(", ", $servicos_nomes);
+        $nomes = $stmtS->fetchAll(PDO::FETCH_COLUMN);
+        $descricao = "Corte Legacy - " . implode(", ", $nomes);
 
         // ======================================================
-        // INTEGRAÇÃO MP SEM CPF (Deixa o MP pedir se precisar)
+        // INTEGRAÇÃO MP
         // ======================================================
         $link_mp = null;
         $id_pref = null;
         $status = 'pendente';
 
         if ($pagamento === 'pix') {
-            if (empty($token_mp)) die("Erro: Pagamento indisponível.");
+            if (empty($token_mp)) {
+                header("Location: index.php?agendamento=erro&mensagem=Pagamento online indisponível no momento.");
+                exit;
+            }
 
-            // Nome e Sobrenome para ajudar o MP
             $partes = explode(' ', $nome_cliente, 2);
             $primeiro = $partes[0];
             $sobrenome = $partes[1] ?? 'Cliente';
@@ -69,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 "items" => [
                     [
                         "title" => $descricao,
-                        "description" => "Serviços Barbearia",
+                        "description" => "Servicos Barbearia",
                         "quantity" => 1,
                         "currency_id" => "BRL",
                         "unit_price" => $valor_final
@@ -78,8 +94,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 "payer" => [
                     "email" => $email,
                     "name" => $primeiro,
-                    "surname" => $sobrenome
-                    // REMOVEMOS O BLOCO IDENTIFICATION (CPF) DAQUI
+                    "surname" => $sobrenome,
+                    "identification" => [
+                        "type" => "CPF",
+                        "number" => $cpf_limpo
+                    ]
                 ],
                 "back_urls" => [
                     "success" => $url_sucesso,
@@ -114,39 +133,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $link_mp = (strpos($token_mp, 'TEST') === 0) ? $mp_res['sandbox_init_point'] : $mp_res['init_point'];
                 $id_pref = $mp_res['id'];
             } else {
-                // Debug se der erro
-                echo "Erro MP: <pre>" . print_r($mp_res, true) . "</pre>"; die();
+                // Erro na API do MP
+                header("Location: index.php?agendamento=erro&mensagem=Erro ao gerar PIX. Tente pagar na barbearia.");
+                exit;
             }
         }
 
-        // 4. Salvar
+        // 4. Salvar no Banco
         $sql = "INSERT INTO agendamentos (id_barbeiro, id_cliente, servicos_ids, nome_cliente, telefone, email, data, hora, valor_final, metodo_pagamento, status, mp_id, mp_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$barbeiro_id, $id_cliente, $servicos_ids, $nome_cliente, $telefone, $email, $data, $hora, $valor_final, $pagamento, $status, $id_pref, $status]);
         $novo_id = $pdo->lastInsertId();
 
-        // 5. Email (Se não for Pix)
-        if ($pagamento !== 'pix') {
+        // 5. Envia Email (opcional)
+        if ($pagamento !== 'pix' && function_exists('enviarEmailConfirmacao')) {
             try {
-                if(function_exists('enviarEmailConfirmacao')) {
-                    $dadosEmail = ['id'=>$novo_id, 'nome_cliente'=>$nome_cliente, 'email'=>$email, 'data'=>$data, 'hora'=>$hora, 'barbeiro_nome'=>$nome_barbeiro, 'servicos'=>$descricao, 'status_pagamento'=>'No Local'];
-                    enviarEmailConfirmacao($dadosEmail);
-                }
+                $dadosEmail = ['id'=>$novo_id, 'nome_cliente'=>$nome_cliente, 'email'=>$email, 'data'=>$data, 'hora'=>$hora, 'barbeiro_nome'=>$nome_barbeiro, 'servicos'=>$descricao, 'status_pagamento'=>'No Local'];
+                enviarEmailConfirmacao($dadosEmail);
             } catch (Exception $e) {}
         }
 
         $pdo->commit();
 
+        // --- REDIRECIONAMENTOS FINAIS ---
         if ($pagamento === 'pix' && $link_mp) {
+            // Vai para o Mercado Pago
             header("Location: " . $link_mp);
         } else {
-            header("Location: index.php?agendamento=sucesso&msg=Agendamento_Realizado");
+            // Volta para o site com a mensagem de SUCESSO VERDE
+            header("Location: index.php?agendamento=sucesso&mensagem=Agendamento realizado com sucesso! Te esperamos lá.");
         }
         exit;
 
     } catch (Exception $e) {
         $pdo->rollBack();
-        die("Erro: " . $e->getMessage());
+        // Volta para o site com a mensagem de ERRO VERMELHO
+        header("Location: index.php?agendamento=erro&mensagem=Ocorreu um erro interno. Tente novamente.");
+        exit;
     }
 }
 ?>

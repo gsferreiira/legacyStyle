@@ -1,10 +1,8 @@
 <?php
 session_start();
 require 'db_connection.php';
-// require 'envia_email.php'; // Se tiver esse arquivo, pode descomentar
 
-// --- CONFIGURAÇÃO MANUAL DA URL ---
-// Importante: Alterei de 'msg' para 'mensagem' para bater com o JavaScript do index.php
+// --- CONFIGURAÇÃO DA URL ---
 define('SITE_URL', 'https://www.legacystyle.com.br'); 
 
 $url_sucesso  = SITE_URL . "/index.php?agendamento=sucesso&mensagem=Pagamento confirmado!";
@@ -26,15 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email          = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
     $pagamento      = filter_input(INPUT_POST, 'payment_method', FILTER_SANITIZE_STRING) ?? 'presencial';
     $valor_final    = (float) ($_POST['valor_total'] ?? 0);
-    
-    // CPF: Remove tudo que não for número
     $cpf_limpo      = preg_replace('/[^0-9]/', '', $_POST['cpf'] ?? '');
-
     $id_cliente     = $_SESSION['cliente_id'] ?? null;
 
     // Validação
     if (!$barbeiro_id || !$servicos_ids || !$data || !$hora || !$email) {
-        // Redireciona com erro em vez de morrer na tela branca
         header("Location: index.php?agendamento=erro&mensagem=Preencha todos os campos obrigatórios.");
         exit;
     }
@@ -47,7 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
 
-        // 2. Token do Barbeiro
+        // 2. Busca Token e Nome do Barbeiro direto do Banco
+        // O CÓDIGO FICA LIMPO: Pega a chave de quem foi selecionado (Cauã ou Vitinho)
         $stmt = $pdo->prepare("SELECT nome, mp_access_token FROM barbeiros WHERE id = ?");
         $stmt->execute([$barbeiro_id]);
         $barbeiro_dados = $stmt->fetch();
@@ -57,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // 3. Serviços
         $ids = explode(',', $servicos_ids);
-        // Prepara query segura para array
         $marks = implode(',', array_fill(0, count($ids), '?'));
         $stmtS = $pdo->prepare("SELECT nome FROM servicos WHERE id IN ($marks)");
         $stmtS->execute($ids);
@@ -65,15 +59,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $descricao = "Corte Legacy - " . implode(", ", $nomes);
 
         // ======================================================
-        // INTEGRAÇÃO MP
+        // INTEGRAÇÃO MP (Genérica via CURL)
         // ======================================================
         $link_mp = null;
         $id_pref = null;
-        $status = 'pendente';
+        $status_inicial = 'pendente';
 
         if ($pagamento === 'pix') {
             if (empty($token_mp)) {
-                header("Location: index.php?agendamento=erro&mensagem=Pagamento online indisponível no momento.");
+                // Se o barbeiro não tiver chave no banco, dá erro
+                header("Location: index.php?agendamento=erro&mensagem=Erro: Pagamento indisponível para este barbeiro.");
                 exit;
             }
 
@@ -85,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 "items" => [
                     [
                         "title" => $descricao,
-                        "description" => "Servicos Barbearia",
+                        "description" => "Profissional: " . $nome_barbeiro,
                         "quantity" => 1,
                         "currency_id" => "BRL",
                         "unit_price" => $valor_final
@@ -108,7 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 "auto_return" => "approved",
                 "notification_url" => $url_webhook . "?barbeiro_id=" . $barbeiro_id,
                 "payment_methods" => [
-                    "excluded_payment_types" => [["id" => "ticket"]]
+                    "excluded_payment_types" => [["id" => "ticket"]],
+                    "installments" => 1
                 ]
             ];
 
@@ -130,11 +126,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mp_res = json_decode($res, true);
 
             if (isset($mp_res['init_point'])) {
-                $link_mp = (strpos($token_mp, 'TEST') === 0) ? $mp_res['sandbox_init_point'] : $mp_res['init_point'];
+                // Se a chave for de teste (sandbox), usa o link sandbox
+                $link_mp = (strpos($token_mp, 'TEST') !== false) ? $mp_res['sandbox_init_point'] : $mp_res['init_point'];
                 $id_pref = $mp_res['id'];
             } else {
-                // Erro na API do MP
-                header("Location: index.php?agendamento=erro&mensagem=Erro ao gerar PIX. Tente pagar na barbearia.");
+                header("Location: index.php?agendamento=erro&mensagem=Erro ao comunicar com Mercado Pago.");
                 exit;
             }
         }
@@ -142,33 +138,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 4. Salvar no Banco
         $sql = "INSERT INTO agendamentos (id_barbeiro, id_cliente, servicos_ids, nome_cliente, telefone, email, data, hora, valor_final, metodo_pagamento, status, mp_id, mp_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$barbeiro_id, $id_cliente, $servicos_ids, $nome_cliente, $telefone, $email, $data, $hora, $valor_final, $pagamento, $status, $id_pref, $status]);
-        $novo_id = $pdo->lastInsertId();
-
-        // 5. Envia Email (opcional)
-        if ($pagamento !== 'pix' && function_exists('enviarEmailConfirmacao')) {
-            try {
-                $dadosEmail = ['id'=>$novo_id, 'nome_cliente'=>$nome_cliente, 'email'=>$email, 'data'=>$data, 'hora'=>$hora, 'barbeiro_nome'=>$nome_barbeiro, 'servicos'=>$descricao, 'status_pagamento'=>'No Local'];
-                enviarEmailConfirmacao($dadosEmail);
-            } catch (Exception $e) {}
-        }
-
+        $stmt->execute([$barbeiro_id, $id_cliente, $servicos_ids, $nome_cliente, $telefone, $email, $data, $hora, $valor_final, $pagamento, $status_inicial, $id_pref, $status_inicial]);
+        
         $pdo->commit();
 
-        // --- REDIRECIONAMENTOS FINAIS ---
+        // 5. Redirecionar
         if ($pagamento === 'pix' && $link_mp) {
-            // Vai para o Mercado Pago
             header("Location: " . $link_mp);
         } else {
-            // Volta para o site com a mensagem de SUCESSO VERDE
-            header("Location: index.php?agendamento=sucesso&mensagem=Agendamento realizado com sucesso! Te esperamos lá.");
+            header("Location: index.php?agendamento=sucesso&mensagem=Agendamento realizado! Te esperamos lá.");
         }
         exit;
 
     } catch (Exception $e) {
-        $pdo->rollBack();
-        // Volta para o site com a mensagem de ERRO VERMELHO
-        header("Location: index.php?agendamento=erro&mensagem=Ocorreu um erro interno. Tente novamente.");
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        header("Location: index.php?agendamento=erro&mensagem=Erro interno ao salvar.");
         exit;
     }
 }

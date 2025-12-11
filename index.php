@@ -314,6 +314,26 @@ session_start();
         
         .input-group { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
         .input-group input { width: 100%; border: none; outline: none; font-size: 14px; background: transparent; }
+        
+
+        @media (max-width: 768px) {
+            /* CORREÇÃO DO ZOOM NO IPHONE */
+            .hero {
+                background-attachment: scroll; /* O segredo: muda de fixed para scroll no celular */
+                background-position: center center;
+                height: 100vh; /* Garante que ocupe a altura da tela */
+            }
+
+            .hero h1 { font-size: 40px; }
+            .features-wrapper { margin-top: 0; padding-top: 50px; background: #f9f9f9; }
+            .menu-toggle { display: block; }
+            nav { position: fixed; top: 70px; right: -100%; width: 80%; height: 100vh; background: #000; flex-direction: column; padding: 40px; transition: 0.4s; }
+            nav.active { right: 0; }
+            nav ul { flex-direction: column; }
+            .about-grid { flex-direction: column; }
+            .contact-wrapper { flex-direction: column; }
+            .contact-map { height: 300px; }
+        }
     </style>
 </head>
 <body>

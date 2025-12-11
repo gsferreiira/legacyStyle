@@ -92,7 +92,12 @@ foreach ($agendamentos as $agendamento) {
         .header-actions { display: flex; gap: 10px; }
         
         .btn-action { padding: 8px 15px; border-radius: 4px; text-decoration: none; font-weight: 500; transition: all 0.3s; display: inline-flex; align-items: center; gap: 5px; font-size: 14px; color: white; }
-        .btn-bloqueio { background-color: #e67e22; } /* Botão Laranja para Bloqueios */
+        
+        /* --- NOVO ESTILO PARA O BOTÃO VOLTAR AO SITE --- */
+        .btn-site { background-color: #6c757d; } 
+        .btn-site:hover { background-color: #5a6268; }
+
+        .btn-bloqueio { background-color: #e67e22; }
         .btn-bloqueio:hover { background-color: #d35400; }
         .btn-password { background-color: #2c3e50; }
         .btn-password:hover { background-color: #1a252f; }
@@ -127,6 +132,10 @@ foreach ($agendamentos as $agendamento) {
         <div class="header">
             <h1><i class="fas fa-cut"></i> Painel do <?= htmlspecialchars($_SESSION['barbeiro_nome'] ?? 'Barbeiro') ?></h1>
             <div class="header-actions">
+                <a href="index.php" class="btn-action btn-site">
+                    <i class="fas fa-home"></i> Voltar ao Site
+                </a>
+
                 <a href="bloqueios.php" class="btn-action btn-bloqueio">
                     <i class="fas fa-ban"></i> Bloqueios
                 </a>

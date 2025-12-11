@@ -123,7 +123,7 @@ if ($googleConfigurado) {
 <body>
     <div class="container">
         <div class="logo-area">
-            <img src="assets/LOGO LEGACY SF/2.png" alt="Legacy Style">
+            <img src="assets/LOGO LEGACY SF/1.png" alt="Legacy Style">
             <h2>Área do Cliente</h2>
         </div>
 

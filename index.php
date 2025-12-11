@@ -411,7 +411,8 @@ session_start();
                 ?>
                 <div class="service-card">
                     <i class="fas fa-cut"></i> <h3><?= $s['nome'] ?></h3>
-                    <p></p>
+                    <p> teste teste testete stes</p>
+                    <p> </p>
                     <div class="price">R$ <?= number_format($s['preco'], 2, ',', '.') ?></div>
                 </div>
                 <?php endforeach; ?>

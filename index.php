@@ -406,15 +406,110 @@ session_start();
             </div>
             <div class="services-grid">
                 <?php
+                $infos_visuais = [
+                    // --- CORTES ---
+                    'Corte' => [
+                        'icone' => 'fa-cut', 
+                        'desc'  => 'Do clássico ao degradê navalhado. Precisão para definir seu estilo.'
+                    ],
+                    'Corte de Cabelo' => [
+                        'icone' => 'fa-cut', 
+                        'desc'  => 'Técnicas modernas de visagismo para encontrar o corte ideal para seu rosto.'
+                    ],
+                    'Corte Social' => [
+                        'icone' => 'fa-user', 
+                        'desc'  => 'Elegância e sobriedade. O corte perfeito para o dia a dia e trabalho.'
+                    ],
+                    'Corte Infantil' => [
+                        'icone' => 'fa-child', 
+                        'desc'  => 'Paciência e cuidado para deixar os pequenos com muito estilo.'
+                    ],
+
+                    // --- BARBA ---
+                    'Barba' => [
+                        'icone' => 'fa-user-tie', 
+                        'desc'  => 'Ritual com toalha quente e navalha afiada. Alinhamento perfeito dos fios.'
+                    ],
+                    'Barba Terapia' => [
+                        'icone' => 'fa-spa', 
+                        'desc'  => 'Muito mais que barbear. Hidratação profunda com vapor de ozônio e massagem.'
+                    ],
+                    'Barboterapia' => [ // Variação de nome
+                        'icone' => 'fa-spa', 
+                        'desc'  => 'Relaxamento total. Vapor, esfoliação e óleos essenciais para a pele.'
+                    ],
+
+                    // --- COMBOS ---
+                    'Combo' => [
+                        'icone' => 'fa-crown', 
+                        'desc'  => 'A experiência completa. Cabelo e barba alinhados com preço especial.'
+                    ],
+                    'Combo (Corte + Barba)' => [
+                        'icone' => 'fa-crown', 
+                        'desc'  => 'Saia renovado. O serviço carro-chefe da casa para transformação total.'
+                    ],
+                    'Corte + Barba' => [
+                        'icone' => 'fa-crown', 
+                        'desc'  => 'União de estilo e cuidado. O pacote completo para o homem moderno.'
+                    ],
+
+                    // --- ACABAMENTOS E EXTRAS ---
+                    'Pezinho' => [
+                        'icone' => 'fa-ruler-combined', 
+                        'desc'  => 'Manutenção rápida dos contornos para manter o corte sempre limpo.'
+                    ],
+                    'Pézinho' => [ // Com acento
+                        'icone' => 'fa-ruler-combined', 
+                        'desc'  => 'Acabamento fino na nuca e costeletas. O detalhe que faz a diferença.'
+                    ],
+                    'Sobrancelha' => [
+                        'icone' => 'fa-eye', 
+                        'desc'  => 'Design masculino sutil. Limpeza do olhar sem perder a naturalidade.'
+                    ],
+                    
+                    // --- QUÍMICA ---
+                    'Platinado' => [
+                        'icone' => 'fa-gem', 
+                        'desc'  => 'Estilo ousado. Descoloração global com proteção máxima aos fios.'
+                    ],
+                    'Luzes' => [
+                        'icone' => 'fa-bolt', 
+                        'desc'  => 'Ilumine o visual com mechas e reflexos modernos.'
+                    ],
+                    'Selagem' => [
+                        'icone' => 'fa-wind', 
+                        'desc'  => 'Redução de volume e alinhamento dos fios com aspecto natural.'
+                    ],
+                    'Pigmentação' => [
+                        'icone' => 'fa-paint-brush', 
+                        'desc'  => 'Correção de falhas e realce dos contornos da barba ou cabelo.'
+                    ]
+                ];
+
+                // Puxa do banco
                 $servicos = $pdo->query("SELECT * FROM servicos")->fetchAll();
+
                 foreach($servicos as $s):
+                    $nome_banco = trim($s['nome']); // Remove espaços extras invisíveis
+                    
+                    // Tenta achar a configuração
+                    if (isset($infos_visuais[$nome_banco])) {
+                        $info = $infos_visuais[$nome_banco];
+                    } else {
+                        // PADRÃO (Se ainda assim não achar, vai cair aqui)
+                        $info = [
+                            'icone' => 'fa-scissors',
+                            'desc'  => 'Qualidade Legacy Style garantida. Agende agora e confira.'
+                        ];
+                    }
                 ?>
                 <div class="service-card">
-                    <i class="fas fa-cut"></i> <h3><?= $s['nome'] ?></h3>
-                    <p> teste teste testete stes</p>
-                    <p> </p>
+                    <i class="fas <?= $info['icone'] ?>"></i> 
+                    <h3><?= $s['nome'] ?></h3>
+                    <p><?= $info['desc'] ?></p>
                     <div class="price">R$ <?= number_format($s['preco'], 2, ',', '.') ?></div>
-                </div>
+                    
+                    </div>
                 <?php endforeach; ?>
             </div>
         </div>

@@ -1,32 +1,44 @@
 <?php
 // Configuração Universal de Banco de Dados
-// Detecta automaticamente se está no XAMPP ou na Hostinger
+// Versão 2.0 - Corrige o erro da porta 8080
 
-$host = 'localhost'; // Ambos usam localhost
+$host = 'localhost'; 
 
-// Verifica o endereço do servidor
-if ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '127.0.0.1') {
-    // --- AMBIENTE LOCAL (SEU COMPUTADOR/XAMPP) ---
-    $dbname = 'legacystyle'; // Confirme se esse é o nome do seu banco no XAMPP
-    $username = 'root';
-    $password = '';
-} else {
+// Pega o host atual (ex: localhost:8080 ou meusite.com)
+$servidor_atual = $_SERVER['HTTP_HOST'];
+
+// Verifica se "localhost" ou "127.0.0.1" faz parte do endereço
+// Isso funciona mesmo se tiver :8080 no final
+if (strpos($servidor_atual, 'localhost') === false && strpos($servidor_atual, '127.0.0.1') === false) {
     // --- AMBIENTE DE PRODUÇÃO (HOSTINGER) ---
-    // Peguei esses dados do arquivo que você mandou antes
+    // Se NÃO tem localhost no nome, é produção
     $dbname = 'u292075858_legacy';
     $username = 'u292075858_admin';
     $password = 'Adminlegacy2000@'; 
+
+} else {
+    // --- AMBIENTE LOCAL ---
+    // Agora verifica se é Windows ou Linux
+    
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        // --- WINDOWS (SEU XAMPP) ---
+        $dbname = 'legacy'; 
+        $username = 'root';
+        $password = '123'; 
+    } else {
+        // --- LINUX (SEU UBUNTU ATUAL) ---
+        $dbname = 'legacy_style'; 
+        $username = 'ferreira';
+        $password = '159741';
+    }
 }
 
 try {
-    // Cria a conexão PDO com charset utf8mb4 (evita problemas de acentuação)
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    
-    // Configura para lançar exceções em caso de erro
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
 } catch (PDOException $e) {
-    // Em caso de erro, mata o script e mostra a mensagem
-    die("Erro ao conectar ao banco de dados: " . $e->getMessage());
+    // Mostra qual usuário ele tentou usar para facilitar o debug
+    die("Erro na conexão (Tentou usar: $username): " . $e->getMessage());
 }
 ?>

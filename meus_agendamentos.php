@@ -8,19 +8,69 @@ if (!isset($_SESSION['cliente_id'])) {
     exit;
 }
 
-// Processar Cancelamento pelo próprio cliente
+// --- LÓGICA DE CANCELAMENTO COM E-MAIL ---
 if (isset($_POST['cancelar_id'])) {
     $id_ag = $_POST['cancelar_id'];
-    // Só cancela se pertencer a este cliente E for data futura
-    $stmt = $pdo->prepare("DELETE FROM agendamentos WHERE id = ? AND id_cliente = ? AND data >= CURDATE()");
-    $stmt->execute([$id_ag, $_SESSION['cliente_id']]);
+    
+    // 1. BUSCAR DADOS DO AGENDAMENTO (Antes de excluir, para poder avisar no email qual foi)
+    // Verificamos se pertence ao ID do cliente OU ao Email dele
+    $sql_busca = "SELECT a.data, a.hora, b.nome as nome_barbeiro 
+                  FROM agendamentos a 
+                  JOIN barbeiros b ON a.id_barbeiro = b.id 
+                  WHERE a.id = ? AND (a.id_cliente = ? OR a.email = ?)";
+    
+    $stmt_busca = $pdo->prepare($sql_busca);
+    $stmt_busca->execute([$id_ag, $_SESSION['cliente_id'], $_SESSION['cliente_email']]);
+    $dados_agendamento = $stmt_busca->fetch();
+
+    // Se encontrou o agendamento, prossegue com a exclusão e aviso
+    if ($dados_agendamento) {
+        
+        // 2. EXCLUIR O AGENDAMENTO
+        $stmt_del = $pdo->prepare("DELETE FROM agendamentos WHERE id = ?");
+        $stmt_del->execute([$id_ag]);
+
+        // 3. ENVIAR O E-MAIL
+        $para = $_SESSION['cliente_email'];
+        $assunto = "Cancelamento Confirmado - Legacy Style";
+        
+        // Formata a data e hora para ficar bonito no texto
+        $data_formatada = date('d/m/Y', strtotime($dados_agendamento['data']));
+        $hora_formatada = substr($dados_agendamento['hora'], 0, 5);
+        $barbeiro = $dados_agendamento['nome_barbeiro'];
+        $nome_cliente = $_SESSION['cliente_nome'];
+
+        $mensagem = "
+        Olá, $nome_cliente.
+
+        Confirmamos o cancelamento do seu agendamento:
+        ------------------------------------
+        📅 Data: $data_formatada
+        ⏰ Horário: $hora_formatada
+        ✂️ Barbeiro: $barbeiro
+        ------------------------------------
+
+        Seu horário foi liberado para outros clientes.
+        Esperamos te ver em breve!
+
+        Atenciosamente,
+        Equipe Legacy Style
+        ";
+
+        // Cabeçalhos (Ajuste o 'From' para um email real do seu domínio quando estiver na Hostinger)
+        $headers = "From: no-reply@legacystyle.com.br" . "\r\n" .
+                   "Reply-To: contato@legacystyle.com.br" . "\r\n" .
+                   "X-Mailer: PHP/" . phpversion();
+
+        // O @ serve para evitar erro na tela se você estiver no Localhost sem servidor de email
+        @mail($para, $assunto, $mensagem, $headers);
+    }
+    
     header("Location: meus_agendamentos.php?msg=cancelado");
     exit;
 }
 
-// Buscar Agendamentos deste cliente
-// Primeiro busca pelo ID do cliente
-// DEPOIS busca pelo EMAIL (caso ele tenha feito agendamentos antes de criar conta)
+// --- BUSCAR LISTA DE AGENDAMENTOS (Para exibir na tela) ---
 $sql = "
     SELECT a.*, b.nome as barbeiro_nome, 
            (SELECT GROUP_CONCAT(nome SEPARATOR ', ') FROM servicos WHERE FIND_IN_SET(id, REPLACE(a.servicos_ids, ' ', ''))) as servicos_nomes
@@ -84,6 +134,12 @@ $agendamentos = $stmt->fetchAll();
         <a href="index.php" class="btn-novo"><i class="fas fa-plus"></i> Novo Agendamento</a>
 
         <h3 style="color: #333; margin-bottom: 15px;">Seus Horários</h3>
+        
+        <?php if (isset($_GET['msg']) && $_GET['msg'] == 'cancelado'): ?>
+            <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                Agendamento cancelado com sucesso! Um e-mail de confirmação foi enviado.
+            </div>
+        <?php endif; ?>
 
         <?php if (count($agendamentos) == 0): ?>
             <p style="text-align: center; color: #777; padding: 40px;">Você ainda não tem agendamentos.</p>

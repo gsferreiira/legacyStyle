@@ -7,7 +7,6 @@ require 'db_connection.php';
 $googleConfigurado = false;
 if (file_exists('config_google.php')) {
     include 'config_google.php';
-    // Verifica se as constantes foram definidas corretamente dentro do arquivo
     if (defined('GOOGLE_CLIENT_ID') && defined('GOOGLE_REDIRECT_URL')) {
         $googleConfigurado = true;
     }
@@ -49,32 +48,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
     $telefone = filter_input(INPUT_POST, 'telefone', FILTER_SANITIZE_STRING);
     $senha = $_POST['senha'];
-    
-    $stmt = $pdo->prepare("SELECT id FROM clientes WHERE email = ?");
-    $stmt->execute([$email]);
-    if ($stmt->rowCount() > 0) {
-        $erro = "Este e-mail já está cadastrado. Tente fazer login.";
+    $senhaConfirma = $_POST['senha_confirma']; // Captura a confirmação
+
+    // VERIFICAÇÃO DE SENHA IGUAL
+    if ($senha !== $senhaConfirma) {
+        $erro = "As senhas não conferem. Tente novamente.";
     } else {
-        $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
-        try {
-            $pdo->beginTransaction();
-            $stmt = $pdo->prepare("INSERT INTO clientes (nome, email, telefone, senha) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$nome, $email, $telefone, $senhaHash]);
-            $novo_id = $pdo->lastInsertId();
-            
-            // Vincula agendamentos antigos
-            $pdo->prepare("UPDATE agendamentos SET id_cliente = ? WHERE email = ?")->execute([$novo_id, $email]);
-            $pdo->commit();
-            
-            $_SESSION['cliente_id'] = $novo_id;
-            $_SESSION['cliente_nome'] = $nome;
-            $_SESSION['cliente_email'] = $email;
-            
-            header("Location: meus_agendamentos.php");
-            exit;
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            $erro = "Erro ao cadastrar: " . $e->getMessage();
+        // Se as senhas conferem, segue o baile...
+        $stmt = $pdo->prepare("SELECT id FROM clientes WHERE email = ?");
+        $stmt->execute([$email]);
+        
+        if ($stmt->rowCount() > 0) {
+            $erro = "Este e-mail já está cadastrado. Tente fazer login.";
+        } else {
+            $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+            try {
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare("INSERT INTO clientes (nome, email, telefone, senha) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$nome, $email, $telefone, $senhaHash]);
+                $novo_id = $pdo->lastInsertId();
+                
+                // Vincula agendamentos antigos
+                $pdo->prepare("UPDATE agendamentos SET id_cliente = ? WHERE email = ?")->execute([$novo_id, $email]);
+                $pdo->commit();
+                
+                $_SESSION['cliente_id'] = $novo_id;
+                $_SESSION['cliente_nome'] = $nome;
+                $_SESSION['cliente_email'] = $email;
+                
+                header("Location: meus_agendamentos.php");
+                exit;
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                $erro = "Erro ao cadastrar: " . $e->getMessage();
+            }
         }
     }
 }
@@ -156,7 +163,17 @@ if ($googleConfigurado) {
             <div class="form-group"><i class="fas fa-user"></i><input type="text" name="nome" placeholder="Nome Completo" required></div>
             <div class="form-group"><i class="fab fa-whatsapp"></i><input type="tel" name="telefone" placeholder="WhatsApp (DDD + Número)" required></div>
             <div class="form-group"><i class="fas fa-envelope"></i><input type="email" name="email" placeholder="Seu E-mail" required></div>
-            <div class="form-group"><i class="fas fa-lock"></i><input type="password" name="senha" placeholder="Crie uma Senha" required></div>
+            
+            <div class="form-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="senha" placeholder="Crie uma Senha" required>
+            </div>
+            
+            <div class="form-group">
+                <i class="fas fa-check-double"></i>
+                <input type="password" name="senha_confirma" placeholder="Confirme sua Senha" required>
+            </div>
+            
             <button type="submit" class="btn">Criar Conta</button>
         </form>
 

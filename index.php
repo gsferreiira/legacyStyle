@@ -7,6 +7,19 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A melhor experiência em barbearia de Curitiba. Cortes modernos, barba toalha quente e ambiente premium. Agende online!">
+    <meta name="author" content="Legacy Style">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.legacystyle.com.br/"> <meta property="og:title" content="Legacy Style - Agende seu Horário">
+    <meta property="og:description" content="Ambiente exclusivo, profissionais de elite e sistema de agendamento rápido. Venha conhecer!">
+    <meta property="og:image" content="https://www.legacystyle.com.br/assets/interior1.jpg"> 
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://www.legacystyle.com.br/">
+    <meta property="twitter:title" content="Legacy Style - Agende seu Horário">
+    <meta property="twitter:description" content="Ambiente exclusivo, profissionais de elite e sistema de agendamento rápido.">
+    <meta property="twitter:image" content="https://www.legacystyle.com.br/assets/interior1.jpg">
     <title>Legacy Style - Barbearia Premium</title>
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

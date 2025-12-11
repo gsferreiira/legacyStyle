@@ -411,7 +411,7 @@ session_start();
                 ?>
                 <div class="service-card">
                     <i class="fas fa-cut"></i> <h3><?= $s['nome'] ?></h3>
-                    <p>Experiência completa com lavagem e finalização com produtos premium.</p>
+                    <p></p>
                     <div class="price">R$ <?= number_format($s['preco'], 2, ',', '.') ?></div>
                 </div>
                 <?php endforeach; ?>

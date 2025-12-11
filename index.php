@@ -713,8 +713,8 @@ session_start();
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="btn-back" onclick="changeStep(3)">Voltar</button>
-                            <button type="submit" class="btn-next">Confirmar</button>
+                            <button type="button" class="modal-btn btn-back" onclick="changeStep(3)">Voltar</button>
+                            <button type="submit" class="modal-btn btn-next">Confirmar</button>
                         </div>
                     </form>
                 </div>

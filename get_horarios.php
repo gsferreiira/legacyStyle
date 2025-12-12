@@ -31,17 +31,24 @@ try {
         $inicio = strtotime("$data 08:00");
         $fim = strtotime("$data 17:30");
     } else {
-        // Seg-Sex: 09:00 as 20:00
+        // Seg-Mex: 09:00 as 20:00
         $inicio = strtotime("$data 09:00");
         $fim = strtotime("$data 20:00");
     }
 
-    // Intervalo de almoço (Opcional - Exemplo: 12:00 as 13:00)
-    // $almoco_inicio = strtotime("$data 12:00");
-    // $almoco_fim = strtotime("$data 13:00");
+    // Busca agendamentos já feitos, IGNORANDO PENDENTES EXPIRADOS (NOVO FILTRO)
+    $sql_ocupados = "
+        SELECT hora, duracao 
+        FROM agendamentos 
+        WHERE id_barbeiro = ? AND data = ?
+        AND (
+            metodo_pagamento != 'pix' OR mp_status = 'approved' 
+            OR 
+            (mp_status = 'pendente' AND data_criacao > DATE_SUB(NOW(), INTERVAL 10 MINUTE)) --
+        )
+    ";
 
-    // Busca agendamentos já feitos
-    $stmt = $pdo->prepare("SELECT hora, duracao FROM agendamentos WHERE id_barbeiro = ? AND data = ?");
+    $stmt = $pdo->prepare($sql_ocupados);
     $stmt->execute([$barbeiro_id, $data]);
     $agendamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -59,9 +66,10 @@ try {
             $disponivel = false;
         }
 
-        // 2. Verifica colisão com agendamentos existentes
+        // 2. Verifica colisão com agendamentos existentes (ocupados ou pendentes recentes)
         if ($disponivel) {
             foreach ($agendamentos as $ag) {
+                // A duração do agendamento (ag['duracao']) é usada na checagem
                 $ag_inicio = strtotime("$data " . $ag['hora']);
                 $ag_fim = $ag_inicio + ($ag['duracao'] * 60);
 

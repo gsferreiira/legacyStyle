@@ -14,7 +14,10 @@ date_default_timezone_set('America/Sao_Paulo');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // 1. Receber Dados
+    // VARIÁVEL ESSENCIAL PARA O NOVO RECURSO DE EXPIRAÇÃO (10 minutos)
+    $data_criacao = date('Y-m-d H:i:s'); 
+    
+    // 1. Receber Dados do Formulário
     $barbeiro_id    = filter_input(INPUT_POST, 'barbeiro_id', FILTER_VALIDATE_INT);
     $servicos_ids   = filter_input(INPUT_POST, 'servicos', FILTER_SANITIZE_STRING);
     $data           = filter_input(INPUT_POST, 'data', FILTER_SANITIZE_STRING);
@@ -27,6 +30,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cpf_limpo      = preg_replace('/[^0-9]/', '', $_POST['cpf'] ?? '');
     $id_cliente     = $_SESSION['cliente_id'] ?? null;
 
+    // --- NOVO: LÓGICA DE CADASTRO RÁPIDO PARA CLIENTES NÃO LOGADOS ---
+    $senha_cadastro = $_POST['senha_cadastro'] ?? '';
+    $senha_confirma = $_POST['senha_confirma'] ?? '';
+    $consentimento  = isset($_POST['consentimento_cadastro']); 
+
+    if (!$id_cliente && !empty($senha_cadastro)) {
+        // Cliente não está logado, mas forneceu senhas para cadastro rápido
+        
+        if ($senha_cadastro !== $senha_confirma) {
+            header("Location: index.php?agendamento=erro&mensagem=As senhas de cadastro não conferem.");
+            exit;
+        }
+        
+        if (!$consentimento) {
+            header("Location: index.php?agendamento=erro&mensagem=Você deve dar consentimento para criar a conta.");
+            exit;
+        }
+
+        try {
+            // 1. Verificar se o e-mail já existe
+            $stmt_check = $pdo->prepare("SELECT id, senha, nome, telefone FROM clientes WHERE email = ?");
+            $stmt_check->execute([$email]);
+            $cliente_existente = $stmt_check->fetch();
+
+            if ($cliente_existente) {
+                 // Se o cliente existe, verifica a senha (pode ser uma tentativa de login)
+                 if (password_verify($senha_cadastro, $cliente_existente['senha'])) {
+                    $id_cliente = $cliente_existente['id'];
+                    // Loga o cliente
+                    $_SESSION['cliente_id'] = $id_cliente; 
+                    $_SESSION['cliente_nome'] = $cliente_existente['nome'];
+                    $_SESSION['cliente_email'] = $email;
+                    $_SESSION['cliente_telefone'] = $cliente_existente['telefone'];
+                 } else {
+                     header("Location: index.php?agendamento=erro&mensagem=Este e-mail já está cadastrado com outra senha.");
+                     exit;
+                 }
+            } else {
+                // 2. Inserir novo cliente (Cadastro)
+                $senhaHash = password_hash($senha_cadastro, PASSWORD_DEFAULT);
+                $stmt_insert = $pdo->prepare("INSERT INTO clientes (nome, email, telefone, senha) VALUES (?, ?, ?, ?)");
+                $stmt_insert->execute([$nome_cliente, $email, $telefone, $senhaHash]);
+                $id_cliente = $pdo->lastInsertId();
+                
+                // Loga o cliente automaticamente para a sessão atual
+                $_SESSION['cliente_id'] = $id_cliente;
+                $_SESSION['cliente_nome'] = $nome_cliente;
+                $_SESSION['cliente_email'] = $email;
+                $_SESSION['cliente_telefone'] = $telefone;
+            }
+        } catch (Exception $e) {
+            // Em caso de erro, segue como agendamento anônimo
+            $id_cliente = null;
+        }
+    }
+    // FIM DA LÓGICA DE CADASTRO RÁPIDO
+    
     // Validação
     if (!$barbeiro_id || !$servicos_ids || !$data || !$hora || !$email) {
         header("Location: index.php?agendamento=erro&mensagem=Preencha todos os campos obrigatórios.");
@@ -42,7 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->beginTransaction();
 
         // 2. Busca Token e Nome do Barbeiro direto do Banco
-        // O CÓDIGO FICA LIMPO: Pega a chave de quem foi selecionado (Cauã ou Vitinho)
         $stmt = $pdo->prepare("SELECT nome, mp_access_token FROM barbeiros WHERE id = ?");
         $stmt->execute([$barbeiro_id]);
         $barbeiro_dados = $stmt->fetch();
@@ -63,11 +122,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ======================================================
         $link_mp = null;
         $id_pref = null;
-        $status_inicial = 'pendente';
+        $status_inicial = ($pagamento === 'pix') ? 'pendente' : 'agendado'; 
 
         if ($pagamento === 'pix') {
             if (empty($token_mp)) {
-                // Se o barbeiro não tiver chave no banco, dá erro
                 header("Location: index.php?agendamento=erro&mensagem=Erro: Pagamento indisponível para este barbeiro.");
                 exit;
             }
@@ -126,7 +184,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mp_res = json_decode($res, true);
 
             if (isset($mp_res['init_point'])) {
-                // Se a chave for de teste (sandbox), usa o link sandbox
                 $link_mp = (strpos($token_mp, 'TEST') !== false) ? $mp_res['sandbox_init_point'] : $mp_res['init_point'];
                 $id_pref = $mp_res['id'];
             } else {
@@ -135,10 +192,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // 4. Salvar no Banco
-        $sql = "INSERT INTO agendamentos (id_barbeiro, id_cliente, servicos_ids, nome_cliente, telefone, email, data, hora, valor_final, metodo_pagamento, status, mp_id, mp_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // 4. Salvar no Banco (INCLUINDO data_criacao e id_cliente, se tiver)
+        $sql = "INSERT INTO agendamentos (id_barbeiro, id_cliente, servicos_ids, nome_cliente, telefone, email, data, hora, valor_final, metodo_pagamento, status, mp_id, mp_status, data_criacao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; 
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$barbeiro_id, $id_cliente, $servicos_ids, $nome_cliente, $telefone, $email, $data, $hora, $valor_final, $pagamento, $status_inicial, $id_pref, $status_inicial]);
+        $stmt->execute([$barbeiro_id, $id_cliente, $servicos_ids, $nome_cliente, $telefone, $email, $data, $hora, $valor_final, $pagamento, $status_inicial, $id_pref, $status_inicial, $data_criacao]); 
         
         $pdo->commit();
 
@@ -154,7 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        header("Location: index.php?agendamento=erro&mensagem=Erro interno ao salvar.");
+        header("Location: index.php?agendamento=erro&mensagem=Erro interno ao salvar. Detalhe: " . $e->getMessage()); // Adicionado detalhe do erro para debug
         exit;
     }
 }

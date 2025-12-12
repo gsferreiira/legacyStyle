@@ -10,6 +10,11 @@ $cliente_email = $is_logged_in ? htmlspecialchars($_SESSION['cliente_email']) : 
 
 // Atributo readonly para impedir edição se logado
 $readonly_attr = $is_logged_in ? 'readonly' : '';
+
+// Puxa do banco (Barbeiros e Serviços)
+$barbeiros = $pdo->query("SELECT * FROM barbeiros")->fetchAll();
+$servicos = $pdo->query("SELECT * FROM servicos")->fetchAll();
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -302,7 +307,7 @@ $readonly_attr = $is_logged_in ? 'readonly' : '';
         .option-card {
             border: 2px solid #f0f0f0; border-radius: 10px; padding: 15px; margin-bottom: 15px;
             display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s;
-            position: relative; /* Adicionado para posicionamento do badge */
+            position: relative; 
         }
         .option-card:hover, .option-card.selected { border-color: var(--secondary); background: #fffdf5; }
         .option-card img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
@@ -339,6 +344,18 @@ $readonly_attr = $is_logged_in ? 'readonly' : '';
         .input-group input { width: 100%; border: none; outline: none; font-size: 14px; background: transparent; }
         .input-group input[readonly] { background-color: #f0f0f0; cursor: not-allowed; } /* Novo estilo para campos bloqueados */
         
+        /* Estilo para a caixa de senha que aparecerá */
+        .cadastro-rapido-box { 
+            margin-top: 15px; 
+            margin-bottom: 20px; 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            border-radius: 8px; 
+            display: none; /* Começa oculto */
+        }
+        .cadastro-rapido-box .input-group {
+            padding: 0; border: none; margin-bottom: 10px;
+        }
 
         @media (max-width: 768px) {
             /* CORREÇÃO DO ZOOM NO IPHONE */
@@ -530,9 +547,7 @@ $readonly_attr = $is_logged_in ? 'readonly' : '';
                     ]
                 ];
 
-                // Puxa do banco
-                $servicos = $pdo->query("SELECT * FROM servicos")->fetchAll();
-
+                
                 foreach($servicos as $s):
                     $nome_banco = trim($s['nome']); // Remove espaços extras invisíveis
                     
@@ -567,7 +582,6 @@ $readonly_attr = $is_logged_in ? 'readonly' : '';
             </div>
             <div class="barbers-grid">
                 <?php
-                $barbeiros = $pdo->query("SELECT * FROM barbeiros")->fetchAll();
                 foreach($barbeiros as $b):
                 ?>
                 <div class="barber-card">
@@ -703,7 +717,7 @@ $readonly_attr = $is_logged_in ? 'readonly' : '';
                     </div>
                     <div style="text-align:right; margin-top:15px; font-weight:700;">Total: <span id="totalPrice" style="color:var(--secondary);">R$ 0,00</span></div>
                     <button class="modal-btn btn-next" id="nextToStep3">Continuar</button>
-                    <button class="modal-btn btn-back" onclick="goToStep(1)">Voltar</button>
+                    <button class="modal-btn btn-back" onclick="goToStep(2)">Voltar</button>
                 </div>
 
                 <div id="step3" style="display:none;">
@@ -760,6 +774,28 @@ $readonly_attr = $is_logged_in ? 'readonly' : '';
                                 value="<?= $cliente_email ?>"
                                 <?= $readonly_attr ?>>
                         </div>
+
+                        <?php if (!$is_logged_in): // BLOCO DE CADASTRO RÁPIDO ?>
+                        <div style="display: flex; align-items: center; margin-top: 15px; margin-bottom: 10px;">
+                            <input type="checkbox" name="consentimento_cadastro" id="consentimento_cadastro" style="width: 16px; height: 16px; margin-right: 8px;">
+                            <label for="consentimento_cadastro" style="font-size: 14px; color: var(--primary); font-weight: 600; cursor: pointer;">
+                                Quero salvar meus dados para o próximo atendimento.
+                            </label>
+                        </div>
+                        
+                        <div class="cadastro-rapido-box" id="cadastroBox">
+                            <h4 style="font-size: 15px; margin-top: 0; margin-bottom: 10px; color: var(--primary);">Crie sua senha:</h4>
+                            
+                            <div class="input-group">
+                                <input type="password" name="senha_cadastro" id="senha_cadastro" placeholder="Crie uma Senha">
+                            </div>
+                            <div class="input-group">
+                                <input type="password" name="senha_confirma" id="senha_confirma" placeholder="Confirme a Senha">
+                            </div>
+                            <p style="font-size: 11px; color: #888; margin: 5px 0 0;">Você será logado automaticamente.</p>
+                        </div>
+                        <?php endif; ?>
+
 
                         <div class="payment-selection" style="margin-bottom: 20px;">
                             
@@ -995,7 +1031,7 @@ $readonly_attr = $is_logged_in ? 'readonly' : '';
             });
         }
 
-        // --- NOVO: Lógica de seleção visual de cards de pagamento ---
+        // --- Lógica de seleção visual de cards de pagamento ---
         const paymentOptions = document.querySelectorAll('.payment-option');
         paymentOptions.forEach(card => {
             card.addEventListener('click', function() {
@@ -1034,6 +1070,50 @@ $readonly_attr = $is_logged_in ? 'readonly' : '';
                     if (valorTotalInput) valorTotalInput.value = valorBruto.toFixed(2);
                 }
             });
+        });
+        
+        
+        // --- NOVO: LÓGICA DE MOSTRAR/OCULTAR SENHAS E VALIDAÇÃO DE OBRIGATORIEDADE ---
+        const consentimentoCheckbox = document.getElementById('consentimento_cadastro');
+        const cadastroBox = document.getElementById('cadastroBox');
+        const senhaCadastro = document.getElementById('senha_cadastro');
+        const senhaConfirma = document.getElementById('senha_confirma');
+
+        if (consentimentoCheckbox) {
+            consentimentoCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    cadastroBox.style.display = 'block';
+                    // Adiciona o atributo 'required' apenas se a caixa for marcada
+                    senhaCadastro.setAttribute('required', 'required');
+                    senhaConfirma.setAttribute('required', 'required');
+                } else {
+                    cadastroBox.style.display = 'none';
+                    // Remove o atributo 'required' para permitir o envio do formulário sem senha
+                    senhaCadastro.removeAttribute('required');
+                    senhaConfirma.removeAttribute('required');
+                    // Limpa os campos para evitar envio de dados parciais
+                    senhaCadastro.value = '';
+                    senhaConfirma.value = '';
+                }
+            });
+        }
+        
+        document.querySelector('#step4 form').addEventListener('submit', function(event) {
+            
+            // Verifica se os campos de cadastro rápido existem (ou seja, se o cliente não está logado)
+            if (consentimentoCheckbox) { 
+                
+                // Regra: Se o CONSENTIMENTO está marcado, verifica a consistência das senhas.
+                if (consentimentoCheckbox.checked) {
+                    
+                    if (senhaCadastro.value !== senhaConfirma.value) {
+                        alert('As senhas de cadastro não conferem.');
+                        event.preventDefault();
+                        return;
+                    }
+                    // A obrigatoriedade de preenchimento já é tratada pelo atributo 'required' no HTML
+                }
+            }
         });
     </script>
 

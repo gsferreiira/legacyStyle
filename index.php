@@ -11,6 +11,9 @@ $cliente_email = $is_logged_in ? htmlspecialchars($_SESSION['cliente_email']) : 
 // Atributo readonly para impedir edição se logado
 $readonly_attr = $is_logged_in ? 'readonly' : '';
 
+// NOVO: Define a data máxima permitida para agendamento (hoje + 7 dias)
+$max_date = date('Y-m-d', strtotime('+7 days')); 
+
 // Puxa do banco (Barbeiros e Serviços)
 $barbeiros = $pdo->query("SELECT * FROM barbeiros")->fetchAll();
 $servicos = $pdo->query("SELECT * FROM servicos")->fetchAll();
@@ -717,14 +720,15 @@ $servicos = $pdo->query("SELECT * FROM servicos")->fetchAll();
                     </div>
                     <div style="text-align:right; margin-top:15px; font-weight:700;">Total: <span id="totalPrice" style="color:var(--secondary);">R$ 0,00</span></div>
                     <button class="modal-btn btn-next" id="nextToStep3">Continuar</button>
-                    <button class="modal-btn btn-back" onclick="goToStep(2)">Voltar</button>
+                    <button class="modal-btn btn-back" onclick="goToStep(1)">Voltar</button>
                 </div>
 
                 <div id="step3" style="display:none;">
                     <span class="step-indicator">Passo 3 de 4</span>
                     <h4 class="step-title">Data e Hora</h4>
-                    <input type="date" id="appointmentDate" class="form-control" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:6px;" min="<?= date('Y-m-d') ?>">
-                    <div id="timeSlotsContainer" style="display:none; margin-top:15px;">
+                    <input type="date" id="appointmentDate" class="form-control" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:6px;" 
+                        min="<?= date('Y-m-d') ?>" 
+                        max="<?= $max_date ?>"> <div id="timeSlotsContainer" style="display:none; margin-top:15px;">
                         <span style="font-size:12px; font-weight:700;">Horários:</span>
                         <div id="timeSlots"></div>
                     </div>
@@ -1073,7 +1077,7 @@ $servicos = $pdo->query("SELECT * FROM servicos")->fetchAll();
         });
         
         
-        // --- NOVO: LÓGICA DE MOSTRAR/OCULTAR SENHAS E VALIDAÇÃO DE OBRIGATORIEDADE ---
+        // --- LÓGICA DE MOSTRAR/OCULTAR SENHAS E VALIDAÇÃO DE OBRIGATORIEDADE ---
         const consentimentoCheckbox = document.getElementById('consentimento_cadastro');
         const cadastroBox = document.getElementById('cadastroBox');
         const senhaCadastro = document.getElementById('senha_cadastro');

@@ -22,9 +22,9 @@ if (strpos($servidor_atual, 'localhost') === false && strpos($servidor_atual, '1
     
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
         // --- WINDOWS (SEU XAMPP) ---
-        $dbname = 'legacy'; 
+        $dbname = 'legacystyle'; 
         $username = 'root';
-        $password = '123'; 
+        $password = ''; 
     } else {
         // --- LINUX (SEU UBUNTU ATUAL) ---
         $dbname = 'legacy_style'; 

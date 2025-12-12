@@ -289,10 +289,11 @@ session_start();
         .step-indicator { font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
         .step-title { font-size: 24px; color: var(--primary); margin-bottom: 25px; font-weight: 700; }
 
-        /* Cards do Modal */
+        /* Cards de Seleção */
         .option-card {
             border: 2px solid #f0f0f0; border-radius: 10px; padding: 15px; margin-bottom: 15px;
             display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s;
+            position: relative; /* Adicionado para posicionamento do badge */
         }
         .option-card:hover, .option-card.selected { border-color: var(--secondary); background: #fffdf5; }
         .option-card img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
@@ -710,6 +711,18 @@ session_start();
                     <span class="step-indicator">Passo 4 de 4</span>
                     <h4 class="step-title">Finalizar</h4>
                     
+                    <div style="background:#f4f4f4; padding:15px; border-radius:8px; margin-bottom:15px; text-align:right;">
+                        <span style="font-size:14px; color:#555;">Valor do Agendamento:</span>
+                        <strong id="displayValorBruto" style="font-size:22px; color:var(--primary);">R$ 0,00</strong>
+                    </div>
+                    
+                    <div id="discountBanner" style="display:none; background:#1f1f1f; color:#fff; padding:15px; border-radius:8px; margin-bottom:20px; border-left: 5px solid var(--secondary);">
+                        <span style="display:block; font-size:12px; font-weight:700; text-transform:uppercase; color:var(--secondary);">✨ VANTAGEM ONLINE APLICADA!</span>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:5px;">
+                            <span style="font-size:15px; color:#ccc;">Você economiza: <strong id="displayDesconto" style="color:var(--secondary); font-size:18px;">R$ 0,00</strong></span>
+                            <span style="font-size:24px; font-weight:800; color:#fff;">Total: <strong id="displayValorFinal">R$ 0,00</strong></span>
+                        </div>
+                    </div>
                     <form action="salvar_agendamento.php" method="POST">
                         <input type="hidden" name="barbeiro_id" id="inpBarbeiro">
                         <input type="hidden" name="servicos" id="inpServicos">
@@ -732,22 +745,41 @@ session_start();
                             <input type="email" name="email" placeholder="E-mail" required>
                         </div>
 
-                        <div style="background:#f4f4f4; padding:15px; border-radius:8px; margin-bottom:20px;">
-                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin-bottom:10px;">
-                                <input type="radio" name="payment_method" value="presencial" checked> <span>Pagar na Barbearia</span>
+                        <div class="payment-selection" style="margin-bottom: 20px;">
+                            
+                            <label class="option-card payment-option" data-method="presencial" style="position: relative;">
+                                <input type="radio" name="payment_method" value="presencial" checked style="display:none;">
+                                <i class="fas fa-handshake" style="font-size: 24px; color: #555;"></i>
+                                <div>
+                                    <h4 style="margin:0; font-size:16px; font-weight:700; color:#333;">Pagar na Barbearia</h4>
+                                    <span style="font-size:12px; color:#777;">Aceitamos Cartão, Pix ou Dinheiro (Valor Bruto)</span>
+                                </div>
                             </label>
-                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                                <input type="radio" name="payment_method" value="pix"> <span>Pagar Online (Pix/Cartão)</span>
-                            </label>
-                        </div>
 
+                            <label class="option-card payment-option" data-method="pix" style="position: relative;">
+                                <input type="radio" name="payment_method" value="pix" style="display:none;">
+                                <i class="fas fa-credit-card" style="font-size: 24px; color: var(--secondary);"></i>
+                                <div>
+                                    <h4 style="margin:0; font-size:16px; font-weight:700; color:var(--primary);">Pagar Online (Pix/Cartão)</h4>
+                                    <span style="font-size:12px; color:#777;">Receba 5% de desconto no valor total!</span>
+                                </div>
+                                <span style="position: absolute; top: -5px; right: -5px; background: var(--secondary); color: #000; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; transform: rotate(3deg); box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                    5% OFF
+                                </span>
+                            </label>
+
+                        </div>
                         <div id="redirectMsg" style="display:none; padding:10px; background:#e3f2fd; font-size:12px; margin-bottom:15px; border-radius:5px; color:#0d47a1;">
                             Você será redirecionado para o <strong>Mercado Pago</strong> para finalizar.
                         </div>
 
-                        <div class="modal-footer">
-                            <button type="button" class="modal-btn btn-back" onclick="changeStep(3)">Voltar</button>
-                            <button type="submit" class="modal-btn btn-next">Confirmar</button>
+                        <div class="modal-footer d-flex flex-column align-items-stretch">
+                            <button type="submit" class="modal-btn btn-next w-100 mb-2">
+                                <i class="fas fa-check-circle"></i> Confirmar
+                            </button>
+                            <button type="button" class="modal-btn btn-back w-100" onclick="changeStep(3)">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -763,6 +795,29 @@ session_start();
         let currentServices = [];
         let currentPrice = 0;
         let currentDuration = 0;
+
+        // Função utilitária para formatar valores
+        const formatCurrency = (value) => `R$ ${parseFloat(value).toFixed(2).replace('.', ',')}`;
+        
+        // Novo cálculo de desconto para reuso
+        const getDiscountedValues = (price) => {
+            const valorBruto = price;
+            const desconto = valorBruto * 0.05;
+            const valorComDesconto = valorBruto - desconto;
+            return { valorBruto, desconto, valorComDesconto };
+        };
+        
+        // Função para atualizar os valores de resumo no Passo 4
+        function updateStep4Summary(price) {
+            const { valorBruto, desconto, valorComDesconto } = getDiscountedValues(price);
+            
+            // Atualiza o display do valor BRUTO (sempre visível)
+            document.getElementById('displayValorBruto').innerText = formatCurrency(valorBruto);
+            
+            // Atualiza o banner de desconto (conteúdo oculto/dinâmico)
+            document.getElementById('displayDesconto').innerText = formatCurrency(desconto);
+            document.getElementById('displayValorFinal').innerText = formatCurrency(valorComDesconto);
+        }
 
         function openModal() {
             if (!modal) return;
@@ -798,12 +853,35 @@ session_start();
                 const nav = document.querySelector('nav');
                 if (nav) nav.classList.toggle('active');
             });
+            
+            // Corrige o menu se o modal estiver aberto e o menu for usado
+            document.querySelector('nav').addEventListener('click', (e) => {
+                if (e.target.tagName === 'A' && e.target.classList.contains('login-btn-menu')) {
+                    document.querySelector('nav').classList.remove('active');
+                    if (modal.style.display === 'block') document.body.style.overflow = 'hidden';
+                } else if (e.target.tagName === 'A' && e.target.hash) {
+                    document.querySelector('nav').classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
         }
 
         function goToStep(step) {
             document.querySelectorAll('[id^="step"]').forEach(el => el.style.display = 'none');
             const target = document.getElementById(`step${step}`);
             if (target) target.style.display = 'block';
+            
+            // Lógica de atualização quando entrar no Passo 4
+            if (step === 4) {
+                updateStep4Summary(currentPrice);
+                
+                // Força a seleção inicial do card 'presencial' (que está checked no HTML)
+                const initialCard = document.querySelector('.payment-option[data-method="presencial"]');
+                if (initialCard) {
+                     // Dispara o clique no card para aplicar a classe 'selected' e a lógica de preço/banner
+                    initialCard.click(); 
+                }
+            }
         }
 
         function changeStep(step) { goToStep(step); }
@@ -834,7 +912,7 @@ session_start();
                     currentDuration -= duration;
                 }
                 const totalEl = document.getElementById('totalPrice');
-                if (totalEl) totalEl.innerText = `R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
+                if (totalEl) totalEl.innerText = formatCurrency(currentPrice);
             });
         });
 
@@ -883,8 +961,13 @@ session_start();
                             if (confirmServ) confirmServ.value = currentServices.join(',');
                             if (confirmData) confirmData.value = dateInput.value;
                             if (confirmHora) confirmHora.value = t;
+                            
+                            // Define o valor inicial como BRUTO
                             if (valorTotal)  valorTotal.value = currentPrice.toFixed(2);
-
+                            
+                            // Atualiza o resumo e o valor final antes de ir para o passo 4
+                            updateStep4Summary(currentPrice);
+                            
                             goToStep(4);
                         };
                         container.appendChild(btn);
@@ -896,16 +979,43 @@ session_start();
             });
         }
 
+        // --- NOVO: Lógica de seleção visual de cards de pagamento ---
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        paymentOptions.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove 'selected' de todos os cards de pagamento e marca este
+                paymentOptions.forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // Dispara o evento de 'change' no radio button oculto
+                const radioInput = this.querySelector('input[type="radio"]');
+                if (radioInput) radioInput.checked = true;
+                
+                // Chama o listener de change para atualizar o preço e o banner
+                const event = new Event('change');
+                radioInput.dispatchEvent(event);
+            });
+        });
+
+        // Listener no input de rádio (que é disparado pelo clique no card)
         document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const redirectInfo = document.getElementById('redirectMsg');
-                const valorTotal = document.getElementById('inpValor');
+                const valorTotalInput = document.getElementById('inpValor');
+                const discountBanner = document.getElementById('discountBanner');
+                
+                const { valorBruto, valorComDesconto } = getDiscountedValues(currentPrice);
+
                 if (this.value === 'pix') {
+                    // PIX: Aplica desconto e mostra o banner
                     if (redirectInfo) redirectInfo.style.display = 'block';
-                    if (valorTotal) valorTotal.value = currentPrice.toFixed(2);
+                    if (discountBanner) discountBanner.style.display = 'block';
+                    if (valorTotalInput) valorTotalInput.value = valorComDesconto.toFixed(2);
                 } else {
+                    // PRESENCIAL: Usa o valor BRUTO e oculta o banner
                     if (redirectInfo) redirectInfo.style.display = 'none';
-                    if (valorTotal) valorTotal.value = currentPrice.toFixed(2);
+                    if (discountBanner) discountBanner.style.display = 'none';
+                    if (valorTotalInput) valorTotalInput.value = valorBruto.toFixed(2);
                 }
             });
         });
@@ -954,4 +1064,4 @@ session_start();
         });
     </script>
 </body>
-</html>w
+</html>

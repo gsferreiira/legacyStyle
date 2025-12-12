@@ -14,6 +14,9 @@ date_default_timezone_set('America/Sao_Paulo');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
+    // VARIÁVEL ESSENCIAL PARA O NOVO RECURSO DE EXPIRAÇÃO
+    $data_criacao = date('Y-m-d H:i:s'); //
+    
     // 1. Receber Dados
     $barbeiro_id    = filter_input(INPUT_POST, 'barbeiro_id', FILTER_VALIDATE_INT);
     $servicos_ids   = filter_input(INPUT_POST, 'servicos', FILTER_SANITIZE_STRING);
@@ -63,7 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ======================================================
         $link_mp = null;
         $id_pref = null;
-        $status_inicial = 'pendente';
+        // Se for Pix, o status INICIAL é PENDENTE no MP
+        $status_inicial = ($pagamento === 'pix') ? 'pendente' : 'agendado'; 
 
         if ($pagamento === 'pix') {
             if (empty($token_mp)) {
@@ -135,10 +139,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // 4. Salvar no Banco
-        $sql = "INSERT INTO agendamentos (id_barbeiro, id_cliente, servicos_ids, nome_cliente, telefone, email, data, hora, valor_final, metodo_pagamento, status, mp_id, mp_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // 4. Salvar no Banco (INCLUINDO data_criacao)
+        $sql = "INSERT INTO agendamentos (id_barbeiro, id_cliente, servicos_ids, nome_cliente, telefone, email, data, hora, valor_final, metodo_pagamento, status, mp_id, mp_status, data_criacao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; //
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$barbeiro_id, $id_cliente, $servicos_ids, $nome_cliente, $telefone, $email, $data, $hora, $valor_final, $pagamento, $status_inicial, $id_pref, $status_inicial]);
+        $stmt->execute([$barbeiro_id, $id_cliente, $servicos_ids, $nome_cliente, $telefone, $email, $data, $hora, $valor_final, $pagamento, $status_inicial, $id_pref, $status_inicial, $data_criacao]); //
         
         $pdo->commit();
 
@@ -154,6 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
+        // É bom logar o erro $e->getMessage() para debug
         header("Location: index.php?agendamento=erro&mensagem=Erro interno ao salvar.");
         exit;
     }

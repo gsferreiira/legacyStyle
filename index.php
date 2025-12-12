@@ -1,6 +1,15 @@
 <?php
 require 'db_connection.php';
 session_start();
+
+// Variáveis de sessão do cliente para preenchimento automático
+$is_logged_in = isset($_SESSION['cliente_id']);
+$cliente_nome = $is_logged_in ? htmlspecialchars($_SESSION['cliente_nome']) : '';
+$cliente_telefone = $is_logged_in ? htmlspecialchars($_SESSION['cliente_telefone']) : '';
+$cliente_email = $is_logged_in ? htmlspecialchars($_SESSION['cliente_email']) : '';
+
+// Atributo readonly para impedir edição se logado
+$readonly_attr = $is_logged_in ? 'readonly' : '';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -328,6 +337,7 @@ session_start();
         
         .input-group { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
         .input-group input { width: 100%; border: none; outline: none; font-size: 14px; background: transparent; }
+        .input-group input[readonly] { background-color: #f0f0f0; cursor: not-allowed; } /* Novo estilo para campos bloqueados */
         
 
         @media (max-width: 768px) {
@@ -390,7 +400,7 @@ session_start();
                 <div class="feature-card">
                     <i class="fas fa-cut feature-icon"></i>
                     <h3>Técnica Apurada</h3>
-                    <p>Dominamos do clássico ao moderno com precisão milimétrica e acabamento perfeito.</p>
+                    <p>Dominamos do clássico ao degradê navalhado. Precisão milimétrica e acabamento perfeito.</p>
                 </div>
                 <div class="feature-card">
                     <i class="fas fa-glass-whiskey feature-icon"></i>
@@ -731,10 +741,14 @@ session_start();
                         <input type="hidden" name="valor_total" id="inpValor">
 
                         <div class="input-group">
-                            <input type="text" name="nome" placeholder="Nome Completo" required>
+                            <input type="text" name="nome" placeholder="Nome Completo" required 
+                                value="<?= $cliente_nome ?>"
+                                <?= $readonly_attr ?>>
                         </div>
                         <div class="input-group">
-                            <input type="tel" name="telefone" placeholder="WhatsApp (DDD+Num)" required>
+                            <input type="tel" name="telefone" placeholder="WhatsApp (DDD+Num)" required
+                                value="<?= $cliente_telefone ?>"
+                                <?= $readonly_attr ?>>
                         </div>
                         
                         <div class="input-group">
@@ -742,7 +756,9 @@ session_start();
                         </div>
 
                         <div class="input-group">
-                            <input type="email" name="email" placeholder="E-mail" required>
+                            <input type="email" name="email" placeholder="E-mail" required
+                                value="<?= $cliente_email ?>"
+                                <?= $readonly_attr ?>>
                         </div>
 
                         <div class="payment-selection" style="margin-bottom: 20px;">

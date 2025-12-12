@@ -18,6 +18,15 @@ try {
         exit;
     }
 
+    // --- NOVO: BLOQUEIO PARA MAIS DE 7 DIAS ---
+    $max_future_date = date('Y-m-d', strtotime('+7 days'));
+    if ($data > $max_future_date) {
+        // Retorna array vazio se a data for muito distante
+        echo json_encode([]);
+        exit;
+    }
+    // ----------------------------------------
+
     // Configuração de Horários (Pode ajustar conforme necessidade)
     $dia_semana = date('N', strtotime($data)); // 1=Seg, 7=Dom
     
@@ -31,12 +40,12 @@ try {
         $inicio = strtotime("$data 08:00");
         $fim = strtotime("$data 17:30");
     } else {
-        // Seg-Mex: 09:00 as 20:00
+        // Seg-Sex: 09:00 as 20:00
         $inicio = strtotime("$data 09:00");
         $fim = strtotime("$data 20:00");
     }
 
-    // Busca agendamentos já feitos, IGNORANDO PENDENTES EXPIRADOS (NOVO FILTRO)
+    // Busca agendamentos já feitos, IGNORANDO PENDENTES EXPIRADOS
     $sql_ocupados = "
         SELECT hora, duracao 
         FROM agendamentos 
@@ -44,7 +53,7 @@ try {
         AND (
             metodo_pagamento != 'pix' OR mp_status = 'approved' 
             OR 
-            (mp_status = 'pendente' AND data_criacao > DATE_SUB(NOW(), INTERVAL 10 MINUTE)) --
+            (mp_status = 'pendente' AND data_criacao > DATE_SUB(NOW(), INTERVAL 10 MINUTE))
         )
     ";
 
@@ -69,7 +78,6 @@ try {
         // 2. Verifica colisão com agendamentos existentes (ocupados ou pendentes recentes)
         if ($disponivel) {
             foreach ($agendamentos as $ag) {
-                // A duração do agendamento (ag['duracao']) é usada na checagem
                 $ag_inicio = strtotime("$data " . $ag['hora']);
                 $ag_fim = $ag_inicio + ($ag['duracao'] * 60);
 

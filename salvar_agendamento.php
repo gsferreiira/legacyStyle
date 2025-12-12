@@ -30,24 +30,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cpf_limpo      = preg_replace('/[^0-9]/', '', $_POST['cpf'] ?? '');
     $id_cliente     = $_SESSION['cliente_id'] ?? null;
 
-    // --- NOVO: LÓGICA DE CADASTRO RÁPIDO PARA CLIENTES NÃO LOGADOS ---
+    // --- LÓGICA DE CADASTRO RÁPIDO PARA CLIENTES NÃO LOGADOS ---
     $senha_cadastro = $_POST['senha_cadastro'] ?? '';
     $senha_confirma = $_POST['senha_confirma'] ?? '';
     $consentimento  = isset($_POST['consentimento_cadastro']); 
 
-    if (!$id_cliente && !empty($senha_cadastro)) {
-        // Cliente não está logado, mas forneceu senhas para cadastro rápido
+    if (!$id_cliente && $consentimento) {
+        // Cliente não está logado, mas deu consentimento para cadastro
         
+        // Checagem de segurança (senhas são obrigatórias se consentimento for dado)
+        if (empty($senha_cadastro) || empty($senha_confirma)) {
+             header("Location: index.php?agendamento=erro&mensagem=As senhas são obrigatórias para salvar seus dados.");
+             exit;
+        }
+
         if ($senha_cadastro !== $senha_confirma) {
             header("Location: index.php?agendamento=erro&mensagem=As senhas de cadastro não conferem.");
             exit;
         }
         
-        if (!$consentimento) {
-            header("Location: index.php?agendamento=erro&mensagem=Você deve dar consentimento para criar a conta.");
-            exit;
-        }
-
         try {
             // 1. Verificar se o e-mail já existe
             $stmt_check = $pdo->prepare("SELECT id, senha, nome, telefone FROM clientes WHERE email = ?");
@@ -81,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['cliente_telefone'] = $telefone;
             }
         } catch (Exception $e) {
-            // Em caso de erro, segue como agendamento anônimo
+            // Em caso de erro, remove a ID recém-criada para seguir como agendamento anônimo
             $id_cliente = null;
         }
     }
@@ -93,6 +94,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
+    // --- NOVO: BLOQUEIO PARA MAIS DE 7 DIAS (BACKEND) ---
+    $max_future_date = date('Y-m-d', strtotime('+7 days'));
+    if ($data > $max_future_date) {
+        header("Location: index.php?agendamento=erro&mensagem=Não é possível agendar com mais de 7 dias de antecedência.");
+        exit;
+    }
+    // ----------------------------------------------------
+
     if ($pagamento === 'pix' && strlen($cpf_limpo) < 11) {
         header("Location: index.php?agendamento=erro&mensagem=CPF inválido para pagamento Pix.");
         exit;
@@ -211,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        header("Location: index.php?agendamento=erro&mensagem=Erro interno ao salvar. Detalhe: " . $e->getMessage()); // Adicionado detalhe do erro para debug
+        header("Location: index.php?agendamento=erro&mensagem=Erro interno ao salvar. Detalhe: " . $e->getMessage()); 
         exit;
     }
 }

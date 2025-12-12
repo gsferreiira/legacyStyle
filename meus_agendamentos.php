@@ -290,7 +290,7 @@ $current_datetime = new DateTime();
             <a href="index.php" class="logo">LEGACY <span>STYLE</span></a>
             <div class="nav">
                 <span>Olá, <?= htmlspecialchars($_SESSION['cliente_nome']) ?></span>
-                <a href="logout.php" class="btn-logout">Sair</a>
+                <a href="logout_cliente.php" class="btn-logout">Sair</a>
             </div>
         </div>
     </div>
